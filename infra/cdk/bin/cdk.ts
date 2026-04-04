@@ -4,7 +4,7 @@ import { CdkStack } from '../lib/cdk-stack';
 
 const app = new cdk.App();
 
-new CdkStack(app, 'LlmParityDevStack', {
+new EcrStack(app, 'LlmParityDevStack', {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: 'us-east-2',
