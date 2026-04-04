@@ -6,7 +6,10 @@ const app = new cdk.App();
 
 new EcrStack(app, 'LlmParityDevEcrStack', {
   env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT ?? '655469962246',
+    account: process.env.CDK_DEFAULT_ACCOUNT,
     region: 'us-east-2',
   },
+  synthesizer: new cdk.DefaultStackSynthesizer({
+    qualifier: 'prod01',
+  }),
 });

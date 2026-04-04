@@ -1,16 +1,12 @@
 {
   "name": "cdk",
   "version": "0.1.0",
-  "bin": {
-    "cdk": "bin/cdk.js"
-  },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk",
-    "synth": "cdk synth"
+    "cdk": "aws-cdk",
+    "synth": "aws-cdk synth"
   },
   "devDependencies": {
     "@types/jest": "^30",
