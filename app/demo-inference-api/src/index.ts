@@ -7,7 +7,10 @@ const port = process.env.PORT || 3000;
 const version = process.env.APP_VERSION || "v1";
 
 app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok", version });
+  res.status(200).json({
+    status: "ok",
+    version
+  });
 });
 
 app.post("/invoke", (req, res) => {
@@ -15,7 +18,7 @@ app.post("/invoke", (req, res) => {
   res.status(200).json({
     version,
     prompt,
-    response: `demo-response-for: ${prompt}`,
+    response: `demo-response-for: ${prompt}`
   });
 });
 
