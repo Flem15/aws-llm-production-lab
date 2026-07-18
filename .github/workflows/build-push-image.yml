@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - feature/github-oidc-cicd
     paths:
       - 'app/demo-inference-api/**'
       - '.github/workflows/build-push-image.yml'
