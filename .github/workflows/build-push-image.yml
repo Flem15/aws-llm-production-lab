@@ -1,0 +1,107 @@
+name: Build and Push Immutable Image
+
+on:
+  push:
+    branches:
+      - main
+      - feature/github-oidc-cicd
+    paths:
+      - 'app/demo-inference-api/**'
+      - '.github/workflows/build-push-image.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ecr-image-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  ECR_REPOSITORY: demo-inference-api
+
+jobs:
+  build-and-push:
+    name: Build and Push to ECR
+    runs-on: ubuntu-latest
+
+    environment:
+      name: dev
+      deployment: false
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Configure temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: llm-parity-image-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Log in to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Check whether immutable image already exists
+        id: image-check
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-ids imageTag="${GITHUB_SHA}" \
+            --region "${{ vars.AWS_REGION }}" \
+            >/dev/null 2>&1; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+            echo "Image already exists for this commit; push will be skipped."
+          else
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            echo "No image exists for this commit; build will proceed."
+          fi
+
+      - name: Build immutable Docker image
+        if: steps.image-check.outputs.exists != 'true'
+        working-directory: app/demo-inference-api
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          set -euo pipefail
+
+          docker build \
+            --tag "${ECR_REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}" \
+            .
+
+      - name: Push immutable Docker image
+        if: steps.image-check.outputs.exists != 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          set -euo pipefail
+
+          docker push \
+            "${ECR_REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}"
+
+      - name: Verify immutable image
+        run: |
+          set -euo pipefail
+
+          IMAGE_DIGEST=$(
+            aws ecr describe-images \
+              --repository-name "${ECR_REPOSITORY}" \
+              --image-ids imageTag="${GITHUB_SHA}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "imageDetails[0].imageDigest" \
+              --output text
+          )
+
+          if [ -z "${IMAGE_DIGEST}" ] ||
+             [ "${IMAGE_DIGEST}" = "None" ]; then
+            echo "ERROR: immutable image verification failed"
+            exit 1
+          fi
+
+          echo "PASS: immutable image exists for commit ${GITHUB_SHA}"
