@@ -6,6 +6,7 @@ import { NetworkStack } from '../lib/network-stack';
 import { EcsClusterStack } from '../lib/ecs-cluster-stack';
 import { FargateServiceStack } from '../lib/fargate-service-stack';
 import { ApiStack } from '../lib/api-stack';
+import { ObservabilityStack } from '../lib/observability-stack';
 
 const app = new cdk.App();
 
@@ -51,7 +52,7 @@ const fargateServiceStack = new FargateServiceStack(
   },
 );
 
-new ApiStack(
+const apiStack = new ApiStack(
   app,
   'LlmParityDevApiStack',
   {
@@ -60,5 +61,17 @@ new ApiStack(
     listener: fargateServiceStack.listener,
     loadBalancerSecurityGroup:
       fargateServiceStack.loadBalancerSecurityGroup,
+  },
+);
+
+new ObservabilityStack(
+  app,
+  'LlmParityDevObservabilityStack',
+  {
+    ...commonProps,
+    service: fargateServiceStack.service,
+    loadBalancer: fargateServiceStack.loadBalancer,
+    targetGroup: fargateServiceStack.targetGroup,
+    httpApi: apiStack.httpApi,
   },
 );

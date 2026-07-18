@@ -86,6 +86,11 @@ export class ApiStack extends cdk.Stack {
       this.httpApi.defaultStage?.node.defaultChild as
         apigwv2.CfnStage;
 
+    defaultStage.defaultRouteSettings = {
+      throttlingBurstLimit: 20,
+      throttlingRateLimit: 10,
+    };
+
     defaultStage.accessLogSettings = {
       destinationArn: accessLogGroup.logGroupArn,
       format: JSON.stringify({
