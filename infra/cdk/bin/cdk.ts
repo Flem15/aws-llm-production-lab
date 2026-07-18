@@ -4,6 +4,7 @@ import { DefaultStackSynthesizer } from 'aws-cdk-lib';
 import { EcrStack } from '../lib/ecr-stack';
 import { NetworkStack } from '../lib/network-stack';
 import { EcsClusterStack } from '../lib/ecs-cluster-stack';
+import { FargateServiceStack } from '../lib/fargate-service-stack';
 
 const app = new cdk.App();
 
@@ -17,11 +18,34 @@ const commonProps: cdk.StackProps = {
   }),
 };
 
-new EcrStack(app, 'LlmParityDevEcrStack', commonProps);
+const ecrStack = new EcrStack(
+  app,
+  'LlmParityDevEcrStack',
+  commonProps,
+);
 
-const networkStack = new NetworkStack(app, 'LlmParityDevNetworkStack', commonProps);
+const networkStack = new NetworkStack(
+  app,
+  'LlmParityDevNetworkStack',
+  commonProps,
+);
 
-new EcsClusterStack(app, 'LlmParityDevClusterStack', {
-  ...commonProps,
-  vpc: networkStack.vpc,
-});
+const clusterStack = new EcsClusterStack(
+  app,
+  'LlmParityDevClusterStack',
+  {
+    ...commonProps,
+    vpc: networkStack.vpc,
+  },
+);
+
+new FargateServiceStack(
+  app,
+  'LlmParityDevFargateServiceStack',
+  {
+    ...commonProps,
+    vpc: networkStack.vpc,
+    cluster: clusterStack.cluster,
+    repository: ecrStack.repository,
+  },
+);
