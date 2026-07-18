@@ -52,6 +52,11 @@ export class GitHubOidcStack extends cdk.Stack {
 
     props.repository.grantPullPush(this.actionsRole);
 
+    props.repository.grant(
+      this.actionsRole,
+      'ecr:DescribeImages',
+    );
+
     new cdk.CfnOutput(this, 'GitHubActionsRoleName', {
       value: this.actionsRole.roleName,
     });
