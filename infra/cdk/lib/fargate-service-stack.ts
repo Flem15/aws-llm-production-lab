@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
+import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
 
 export interface FargateServiceStackProps extends cdk.StackProps {
@@ -15,6 +16,9 @@ export class FargateServiceStack extends cdk.Stack {
   public readonly taskDefinition: ecs.FargateTaskDefinition;
   public readonly service: ecs.FargateService;
   public readonly serviceSecurityGroup: ec2.SecurityGroup;
+  public readonly loadBalancerSecurityGroup: ec2.SecurityGroup;
+  public readonly loadBalancer: elbv2.ApplicationLoadBalancer;
+  public readonly targetGroup: elbv2.ApplicationTargetGroup;
 
   constructor(
     scope: Construct,
@@ -87,6 +91,24 @@ export class FargateServiceStack extends cdk.Stack {
       },
     );
 
+    this.loadBalancerSecurityGroup = new ec2.SecurityGroup(
+      this,
+      'PrivateAlbSecurityGroup',
+      {
+        vpc: props.vpc,
+        securityGroupName: 'llm-parity-private-alb-sg',
+        description:
+          'Security group for the private demo inference application load balancer',
+        allowAllOutbound: true,
+      },
+    );
+
+    this.serviceSecurityGroup.addIngressRule(
+      this.loadBalancerSecurityGroup,
+      ec2.Port.tcp(3000),
+      'Allow the private ALB to reach the inference container',
+    );
+
     this.service = new ecs.FargateService(
       this,
       'DemoInferenceService',
@@ -109,6 +131,50 @@ export class FargateServiceStack extends cdk.Stack {
       },
     );
 
+    this.loadBalancer = new elbv2.ApplicationLoadBalancer(
+      this,
+      'PrivateApplicationLoadBalancer',
+      {
+        vpc: props.vpc,
+        loadBalancerName: 'llm-parity-private-alb',
+        internetFacing: false,
+        securityGroup: this.loadBalancerSecurityGroup,
+        vpcSubnets: {
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+      },
+    );
+
+    const listener = this.loadBalancer.addListener(
+      'PrivateHttpListener',
+      {
+        port: 80,
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        open: false,
+      },
+    );
+
+    this.targetGroup = listener.addTargets(
+      'DemoInferenceTargets',
+      {
+        port: 3000,
+        protocol: elbv2.ApplicationProtocol.HTTP,
+        targets: [this.service],
+        deregistrationDelay: cdk.Duration.seconds(30),
+        healthCheck: {
+          enabled: true,
+          path: '/health',
+          protocol: elbv2.Protocol.HTTP,
+          port: 'traffic-port',
+          healthyHttpCodes: '200',
+          healthyThresholdCount: 2,
+          unhealthyThresholdCount: 3,
+          interval: cdk.Duration.seconds(30),
+          timeout: cdk.Duration.seconds(5),
+        },
+      },
+    );
+
     new cdk.CfnOutput(this, 'TaskDefinitionFamily', {
       value: this.taskDefinition.family,
     });
@@ -119,6 +185,18 @@ export class FargateServiceStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, 'ServiceSecurityGroupId', {
       value: this.serviceSecurityGroup.securityGroupId,
+    });
+
+    new cdk.CfnOutput(this, 'LoadBalancerSecurityGroupId', {
+      value: this.loadBalancerSecurityGroup.securityGroupId,
+    });
+
+    new cdk.CfnOutput(this, 'PrivateLoadBalancerDnsName', {
+      value: this.loadBalancer.loadBalancerDnsName,
+    });
+
+    new cdk.CfnOutput(this, 'TargetGroupArn', {
+      value: this.targetGroup.targetGroupArn,
     });
 
     new cdk.CfnOutput(this, 'LogGroupName', {
