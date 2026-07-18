@@ -57,6 +57,62 @@ export class GitHubOidcStack extends cdk.Stack {
       'ecr:DescribeImages',
     );
 
+    this.actionsRole.addToPolicy(
+      new iam.PolicyStatement({
+        sid: 'InspectAndUpdateEcsRelease',
+        actions: [
+          'ecs:DescribeServices',
+          'ecs:DescribeTaskDefinition',
+          'ecs:ListTasks',
+          'ecs:DescribeTasks',
+          'ecs:UpdateService',
+        ],
+        resources: ['*'],
+      }),
+    );
+
+    this.actionsRole.addToPolicy(
+      new iam.PolicyStatement({
+        sid: 'InspectReleaseHealth',
+        actions: [
+          'elasticloadbalancing:DescribeLoadBalancers',
+          'elasticloadbalancing:DescribeTargetGroups',
+          'elasticloadbalancing:DescribeTargetHealth',
+          'apigateway:GET',
+        ],
+        resources: ['*'],
+      }),
+    );
+
+    const bootstrapRoleArns = [
+      cdk.Stack.of(this).formatArn({
+        service: 'iam',
+        region: '',
+        resource: 'role',
+        resourceName: 'cdk-prod01-deploy-role-*',
+      }),
+      cdk.Stack.of(this).formatArn({
+        service: 'iam',
+        region: '',
+        resource: 'role',
+        resourceName: 'cdk-prod01-file-publishing-role-*',
+      }),
+      cdk.Stack.of(this).formatArn({
+        service: 'iam',
+        region: '',
+        resource: 'role',
+        resourceName: 'cdk-prod01-lookup-role-*',
+      }),
+    ];
+
+    this.actionsRole.addToPolicy(
+      new iam.PolicyStatement({
+        sid: 'AssumeCdkBootstrapRoles',
+        actions: ['sts:AssumeRole'],
+        resources: bootstrapRoleArns,
+      }),
+    );
+
     new cdk.CfnOutput(this, 'GitHubActionsRoleName', {
       value: this.actionsRole.roleName,
     });

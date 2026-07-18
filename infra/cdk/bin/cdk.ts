@@ -11,6 +11,20 @@ import { GitHubOidcStack } from '../lib/github-oidc-stack';
 
 const app = new cdk.App();
 
+const imageTag =
+  (app.node.tryGetContext('imageTag') as string | undefined) ??
+  'v1';
+
+const validImageTag =
+  imageTag === 'v1' ||
+  /^[0-9a-f]{40}$/.test(imageTag);
+
+if (!validImageTag) {
+  throw new Error(
+    'imageTag must be v1 or a 40-character lowercase Git SHA',
+  );
+}
+
 const commonProps: cdk.StackProps = {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
@@ -50,6 +64,7 @@ const fargateServiceStack = new FargateServiceStack(
     vpc: networkStack.vpc,
     cluster: clusterStack.cluster,
     repository: ecrStack.repository,
+    imageTag,
   },
 );
 

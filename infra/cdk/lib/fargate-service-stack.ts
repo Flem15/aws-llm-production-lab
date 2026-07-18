@@ -10,6 +10,7 @@ export interface FargateServiceStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
   cluster: ecs.ICluster;
   repository: ecr.IRepository;
+  imageTag: string;
 }
 
 export class FargateServiceStack extends cdk.Stack {
@@ -50,10 +51,10 @@ export class FargateServiceStack extends cdk.Stack {
         containerName: 'demo-inference-api',
         image: ecs.ContainerImage.fromEcrRepository(
           props.repository,
-          'v1',
+          props.imageTag,
         ),
         environment: {
-          APP_VERSION: 'v1',
+          APP_VERSION: props.imageTag,
           PORT: '3000',
         },
         logging: ecs.LogDrivers.awsLogs({
