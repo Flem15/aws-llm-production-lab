@@ -1,0 +1,330 @@
+name: Deploy Immutable ECS Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Full 40-character Git SHA already present in ECR
+        required: true
+        type: string
+      return_to_zero:
+        description: Scale the ECS service back to zero after validation
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: ecs-dev-release
+  cancel-in-progress: false
+
+env:
+  ECS_CLUSTER: llm-parity-cluster
+  ECS_SERVICE: llm-parity-demo-inference-service
+  ECR_REPOSITORY: demo-inference-api
+  ALB_NAME: llm-parity-private-alb
+  CDK_STACK: LlmParityDevFargateServiceStack
+
+jobs:
+  deploy:
+    name: Deploy and Validate
+    runs-on: ubuntu-latest
+
+    environment:
+      name: dev
+      deployment: false
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate immutable image tag input
+        shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "${IMAGE_TAG}" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "ERROR: image_tag must be a full lowercase 40-character Git SHA"
+            exit 1
+          fi
+
+      - name: Configure temporary AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.1.0
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: llm-parity-release-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Verify immutable image exists
+        shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          aws ecr describe-images \
+            --repository-name "${ECR_REPOSITORY}" \
+            --image-ids imageTag="${IMAGE_TAG}" \
+            --region "${{ vars.AWS_REGION }}" \
+            >/dev/null
+
+          echo "PASS: immutable ECR image exists"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: infra/cdk/package-lock.json
+
+      - name: Install CDK dependencies
+        working-directory: infra/cdk
+        run: npm ci
+
+      - name: Build CDK application
+        working-directory: infra/cdk
+        run: npm run build
+
+      - name: Capture previous ECS state
+        id: previous
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          PREVIOUS_TASK_DEFINITION=$(
+            aws ecs describe-services \
+              --cluster "${ECS_CLUSTER}" \
+              --services "${ECS_SERVICE}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "services[0].taskDefinition" \
+              --output text
+          )
+
+          PREVIOUS_DESIRED_COUNT=$(
+            aws ecs describe-services \
+              --cluster "${ECS_CLUSTER}" \
+              --services "${ECS_SERVICE}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "services[0].desiredCount" \
+              --output text
+          )
+
+          if [ -z "${PREVIOUS_TASK_DEFINITION}" ] ||
+             [ "${PREVIOUS_TASK_DEFINITION}" = "None" ]; then
+            echo "ERROR: previous task definition could not be captured"
+            exit 1
+          fi
+
+          echo "task_definition=${PREVIOUS_TASK_DEFINITION}" \
+            >> "${GITHUB_OUTPUT}"
+
+          echo "desired_count=${PREVIOUS_DESIRED_COUNT}" \
+            >> "${GITHUB_OUTPUT}"
+
+          echo "PASS: previous ECS state captured"
+
+      - name: Preview immutable release
+        working-directory: infra/cdk
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          npx aws-cdk diff "${CDK_STACK}" \
+            -c imageTag="${IMAGE_TAG}"
+
+      - name: Deploy immutable task definition
+        working-directory: infra/cdk
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          npx aws-cdk deploy "${CDK_STACK}" \
+            -c imageTag="${IMAGE_TAG}" \
+            --require-approval never \
+            --outputs-file /tmp/release-outputs.json
+
+      - name: Scale service to one for validation
+        run: |
+          set -euo pipefail
+
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --desired-count 1 \
+            --region "${{ vars.AWS_REGION }}" \
+            >/dev/null
+
+      - name: Wait for ECS deployment stability
+        timeout-minutes: 15
+        run: |
+          set -euo pipefail
+
+          aws ecs wait services-stable \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}" \
+            --region "${{ vars.AWS_REGION }}"
+
+          echo "PASS: ECS service reached a stable state"
+
+      - name: Verify deployed task uses requested image
+        shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          ACTIVE_TASK_DEFINITION=$(
+            aws ecs describe-services \
+              --cluster "${ECS_CLUSTER}" \
+              --services "${ECS_SERVICE}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "services[0].taskDefinition" \
+              --output text
+          )
+
+          ACTIVE_IMAGE=$(
+            aws ecs describe-task-definition \
+              --task-definition "${ACTIVE_TASK_DEFINITION}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query \
+              "taskDefinition.containerDefinitions[?name=='demo-inference-api'].image | [0]" \
+              --output text
+          )
+
+          case "${ACTIVE_IMAGE}" in
+            *":${IMAGE_TAG}")
+              echo "PASS: ECS task definition uses requested immutable image"
+              ;;
+            *)
+              echo "ERROR: ECS task definition does not use requested image"
+              exit 1
+              ;;
+          esac
+
+      - name: Verify ALB target health
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+
+          LOAD_BALANCER_ARN=$(
+            aws elbv2 describe-load-balancers \
+              --names "${ALB_NAME}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "LoadBalancers[0].LoadBalancerArn" \
+              --output text
+          )
+
+          TARGET_GROUP_ARN=$(
+            aws elbv2 describe-target-groups \
+              --load-balancer-arn "${LOAD_BALANCER_ARN}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "TargetGroups[0].TargetGroupArn" \
+              --output text
+          )
+
+          aws elbv2 wait target-in-service \
+            --target-group-arn "${TARGET_GROUP_ARN}" \
+            --region "${{ vars.AWS_REGION }}"
+
+          echo "PASS: ALB target is healthy"
+
+      - name: Validate release through API Gateway
+        shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          API_ID=$(
+            aws apigatewayv2 get-apis \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "Items[?Name=='llm-parity-http-api'].ApiId | [0]" \
+              --output text
+          )
+
+          API_ENDPOINT=$(
+            aws apigatewayv2 get-api \
+              --api-id "${API_ID}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "ApiEndpoint" \
+              --output text
+          )
+
+          HEALTH_RESPONSE=$(
+            curl \
+              --fail \
+              --silent \
+              --show-error \
+              --retry 5 \
+              --retry-delay 5 \
+              "${API_ENDPOINT}/health"
+          )
+
+          export HEALTH_RESPONSE
+
+          node -e '
+            const response = JSON.parse(process.env.HEALTH_RESPONSE);
+            const expected = process.env.IMAGE_TAG;
+
+            if (response.status !== "ok") {
+              throw new Error(
+                `Expected health status ok, received ${response.status}`
+              );
+            }
+
+            if (response.version !== expected) {
+              throw new Error(
+                `Expected version ${expected}, received ${response.version}`
+              );
+            }
+
+            console.log(
+              "PASS: API health response matches immutable release SHA"
+            );
+          '
+
+      - name: Return service to zero
+        if: success() && inputs.return_to_zero
+        run: |
+          set -euo pipefail
+
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --desired-count 0 \
+            --region "${{ vars.AWS_REGION }}" \
+            >/dev/null
+
+          echo "PASS: ECS service returned to desired count zero"
+
+      - name: Roll back failed release
+        if: failure() && steps.previous.outputs.task_definition != ''
+        shell: bash
+        env:
+          PREVIOUS_TASK_DEFINITION:
+            ${{ steps.previous.outputs.task_definition }}
+          PREVIOUS_DESIRED_COUNT:
+            ${{ steps.previous.outputs.desired_count }}
+        run: |
+          set -euo pipefail
+
+          echo "Release validation failed; restoring previous task definition."
+
+          aws ecs update-service \
+            --cluster "${ECS_CLUSTER}" \
+            --service "${ECS_SERVICE}" \
+            --task-definition "${PREVIOUS_TASK_DEFINITION}" \
+            --desired-count "${PREVIOUS_DESIRED_COUNT}" \
+            --deployment-configuration \
+              "deploymentCircuitBreaker={enable=true,rollback=true}" \
+            --region "${{ vars.AWS_REGION }}" \
+            >/dev/null
+
+          echo "PASS: rollback request submitted"
