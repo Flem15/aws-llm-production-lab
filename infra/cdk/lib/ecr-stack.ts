@@ -10,6 +10,7 @@ export class EcrStack extends cdk.Stack {
 
     this.repository = new ecr.Repository(this, 'DemoInferenceRepository', {
       repositoryName: 'demo-inference-api',
+        imageTagMutability: ecr.TagMutability.IMMUTABLE,
       imageScanOnPush: true,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       emptyOnDelete: true,

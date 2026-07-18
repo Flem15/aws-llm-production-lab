@@ -7,6 +7,7 @@ import { EcsClusterStack } from '../lib/ecs-cluster-stack';
 import { FargateServiceStack } from '../lib/fargate-service-stack';
 import { ApiStack } from '../lib/api-stack';
 import { ObservabilityStack } from '../lib/observability-stack';
+import { GitHubOidcStack } from '../lib/github-oidc-stack';
 
 const app = new cdk.App();
 
@@ -73,5 +74,14 @@ new ObservabilityStack(
     loadBalancer: fargateServiceStack.loadBalancer,
     targetGroup: fargateServiceStack.targetGroup,
     httpApi: apiStack.httpApi,
+  },
+);
+
+new GitHubOidcStack(
+  app,
+  'LlmParityDevGitHubOidcStack',
+  {
+    ...commonProps,
+    repository: ecrStack.repository,
   },
 );
