@@ -18,6 +18,7 @@ export class FargateServiceStack extends cdk.Stack {
   public readonly serviceSecurityGroup: ec2.SecurityGroup;
   public readonly loadBalancerSecurityGroup: ec2.SecurityGroup;
   public readonly loadBalancer: elbv2.ApplicationLoadBalancer;
+  public readonly listener: elbv2.ApplicationListener;
   public readonly targetGroup: elbv2.ApplicationTargetGroup;
 
   constructor(
@@ -145,7 +146,7 @@ export class FargateServiceStack extends cdk.Stack {
       },
     );
 
-    const listener = this.loadBalancer.addListener(
+    this.listener = this.loadBalancer.addListener(
       'PrivateHttpListener',
       {
         port: 80,
@@ -154,7 +155,7 @@ export class FargateServiceStack extends cdk.Stack {
       },
     );
 
-    this.targetGroup = listener.addTargets(
+    this.targetGroup = this.listener.addTargets(
       'DemoInferenceTargets',
       {
         port: 3000,
