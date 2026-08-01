@@ -27,6 +27,7 @@ env:
   ECR_REPOSITORY: demo-inference-api
   ALB_NAME: llm-parity-private-alb
   CDK_STACK: LlmParityDevFargateServiceStack
+  EVIDENCE_DIR: release-evidence
 
 jobs:
   deploy:
@@ -45,16 +46,18 @@ jobs:
         run: |
           set -euo pipefail
 
-          mkdir -p release-evidence
+          mkdir -p "${EVIDENCE_DIR}"
 
           {
             echo "workflow_run_id=${GITHUB_RUN_ID}"
             echo "workflow_run_attempt=${GITHUB_RUN_ATTEMPT}"
-            echo "workflow_ref=${GITHUB_REF_NAME}"
+            echo "workflow_branch=${GITHUB_REF_NAME}"
             echo "requested_image_tag=${{ inputs.image_tag }}"
             echo "return_to_zero=${{ inputs.return_to_zero }}"
             echo "started_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-          } > release-evidence/release-metadata.txt
+          } > "${EVIDENCE_DIR}/release-metadata.txt"
+
+          echo "PASS: release evidence initialized"
 
       - name: Validate immutable image tag input
         shell: bash
@@ -68,6 +71,8 @@ jobs:
             exit 1
           fi
 
+          echo "PASS: immutable image tag format is valid"
+
       - name: Enforce main branch release
         shell: bash
         run: |
@@ -77,6 +82,8 @@ jobs:
             echo "ERROR: releases may only run from the main branch"
             exit 1
           fi
+
+          echo "PASS: workflow is running from main"
 
       - name: Configure temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
@@ -145,11 +152,21 @@ jobs:
             exit 1
           fi
 
+          if ! [[ "${PREVIOUS_DESIRED_COUNT}" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: previous desired count is invalid"
+            exit 1
+          fi
+
           echo "task_definition=${PREVIOUS_TASK_DEFINITION}" \
             >> "${GITHUB_OUTPUT}"
 
           echo "desired_count=${PREVIOUS_DESIRED_COUNT}" \
             >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "previous_desired_count=${PREVIOUS_DESIRED_COUNT}"
+            echo "previous_task_definition_captured=true"
+          } >> "${EVIDENCE_DIR}/release-metadata.txt"
 
           echo "PASS: previous ECS state captured"
 
@@ -161,7 +178,8 @@ jobs:
           set -euo pipefail
 
           npx aws-cdk diff "${CDK_STACK}" \
-            -c imageTag="${IMAGE_TAG}"
+            -c imageTag="${IMAGE_TAG}" \
+            | tee "../../${EVIDENCE_DIR}/cdk-diff.txt"
 
       - name: Deploy immutable task definition
         working-directory: infra/cdk
@@ -175,6 +193,10 @@ jobs:
             --require-approval never \
             --outputs-file /tmp/release-outputs.json
 
+          cp \
+            /tmp/release-outputs.json \
+            "../../${EVIDENCE_DIR}/release-outputs.json"
+
       - name: Scale service to one for validation
         run: |
           set -euo pipefail
@@ -185,6 +207,8 @@ jobs:
             --desired-count 1 \
             --region "${{ vars.AWS_REGION }}" \
             >/dev/null
+
+          echo "PASS: ECS service scaled to one for validation"
 
       - name: Wait for ECS deployment stability
         timeout-minutes: 15
@@ -315,10 +339,9 @@ jobs:
             );
           '
 
-
       - name: Roll back failed release
         id: rollback
-        if: failure() && steps.previous.outputs.task_definition != ''
+        if: ${{ failure() && steps.previous.outputs.task_definition != '' }}
         shell: bash
         env:
           PREVIOUS_TASK_DEFINITION:
@@ -379,7 +402,7 @@ jobs:
         run: |
           set +e
 
-          mkdir -p release-evidence
+          mkdir -p "${EVIDENCE_DIR}"
 
           aws ecs describe-services \
             --cluster "${ECS_CLUSTER}" \
@@ -407,7 +430,7 @@ jobs:
               }
             }" \
             --output json \
-            > release-evidence/ecs-service.json
+            > "${EVIDENCE_DIR}/ecs-service.json"
 
           STOPPED_TASKS=$(
             aws ecs list-tasks \
@@ -436,9 +459,9 @@ jobs:
                 exitCode:containers[0].exitCode
               }" \
               --output json \
-              > release-evidence/stopped-tasks.json
+              > "${EVIDENCE_DIR}/stopped-tasks.json"
           else
-            echo '[]' > release-evidence/stopped-tasks.json
+            echo '[]' > "${EVIDENCE_DIR}/stopped-tasks.json"
           fi
 
           LOAD_BALANCER_ARN=$(
@@ -468,14 +491,14 @@ jobs:
               description:TargetHealth.Description
             }" \
             --output json \
-            > release-evidence/alb-target-health.json
+            > "${EVIDENCE_DIR}/alb-target-health.json"
 
           {
             echo "finished_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
             echo "job_status=${{ job.status }}"
             echo "rollback_requested=${{ steps.rollback.outputs.requested || 'false' }}"
             echo "scaled_to_zero=${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}"
-          } >> release-evidence/release-metadata.txt
+          } >> "${EVIDENCE_DIR}/release-metadata.txt"
 
           echo "PASS: release diagnostics collected"
 
@@ -492,6 +515,17 @@ jobs:
         if: ${{ always() }}
         shell: bash
         run: |
+          FINAL_STATE=$(
+            aws ecs describe-services \
+              --cluster "${ECS_CLUSTER}" \
+              --services "${ECS_SERVICE}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query \
+              "services[0].[status,desiredCount,runningCount,pendingCount]" \
+              --output text 2>/dev/null ||
+            echo "unavailable"
+          )
+
           {
             echo "# Immutable ECS release"
             echo
@@ -502,22 +536,10 @@ jobs:
             echo "| Requested image | \`${{ inputs.image_tag }}\` |"
             echo "| Previous desired count | \`${{ steps.previous.outputs.desired_count || 'not captured' }}\` |"
             echo "| Rollback requested | \`${{ steps.rollback.outputs.requested || 'false' }}\` |"
-            echo "| Final scale-to-zero requested | \`${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}\` |"
+            echo "| Final scale to zero | \`${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}\` |"
             echo "| Evidence artifact | \`ecs-release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}\` |"
             echo
             echo "## Final ECS state"
             echo
-
-            FINAL_STATE=$(
-              aws ecs describe-services \
-                --cluster "${ECS_CLUSTER}" \
-                --services "${ECS_SERVICE}" \
-                --region "${{ vars.AWS_REGION }}" \
-                --query \
-                "services[0].[status,desiredCount,runningCount,pendingCount]" \
-                --output text 2>/dev/null ||
-              echo "unavailable"
-            )
-
             echo "\`${FINAL_STATE}\`"
           } >> "${GITHUB_STEP_SUMMARY}"
