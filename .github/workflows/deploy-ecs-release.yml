@@ -40,6 +40,22 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Initialize release evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          mkdir -p release-evidence
+
+          {
+            echo "workflow_run_id=${GITHUB_RUN_ID}"
+            echo "workflow_run_attempt=${GITHUB_RUN_ATTEMPT}"
+            echo "workflow_ref=${GITHUB_REF_NAME}"
+            echo "requested_image_tag=${{ inputs.image_tag }}"
+            echo "return_to_zero=${{ inputs.return_to_zero }}"
+            echo "started_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          } > release-evidence/release-metadata.txt
+
       - name: Validate immutable image tag input
         shell: bash
         env:
@@ -49,6 +65,16 @@ jobs:
 
           if [[ ! "${IMAGE_TAG}" =~ ^[0-9a-f]{40}$ ]]; then
             echo "ERROR: image_tag must be a full lowercase 40-character Git SHA"
+            exit 1
+          fi
+
+      - name: Enforce main branch release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${GITHUB_REF_NAME}" != "main" ]; then
+            echo "ERROR: releases may only run from the main branch"
             exit 1
           fi
 
@@ -289,21 +315,9 @@ jobs:
             );
           '
 
-      - name: Return service to zero
-        if: success() && inputs.return_to_zero
-        run: |
-          set -euo pipefail
-
-          aws ecs update-service \
-            --cluster "${ECS_CLUSTER}" \
-            --service "${ECS_SERVICE}" \
-            --desired-count 0 \
-            --region "${{ vars.AWS_REGION }}" \
-            >/dev/null
-
-          echo "PASS: ECS service returned to desired count zero"
 
       - name: Roll back failed release
+        id: rollback
         if: failure() && steps.previous.outputs.task_definition != ''
         shell: bash
         env:
@@ -326,4 +340,184 @@ jobs:
             --region "${{ vars.AWS_REGION }}" \
             >/dev/null
 
+          echo "requested=true" >> "${GITHUB_OUTPUT}"
           echo "PASS: rollback request submitted"
+
+      - name: Enforce final ECS capacity
+        id: cleanup
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          SHOULD_SCALE_TO_ZERO="false"
+
+          if [ "${{ job.status }}" != "success" ]; then
+            SHOULD_SCALE_TO_ZERO="true"
+          elif [ "${{ inputs.return_to_zero }}" = "true" ]; then
+            SHOULD_SCALE_TO_ZERO="true"
+          fi
+
+          if [ "${SHOULD_SCALE_TO_ZERO}" = "true" ]; then
+            aws ecs update-service \
+              --cluster "${ECS_CLUSTER}" \
+              --service "${ECS_SERVICE}" \
+              --desired-count 0 \
+              --region "${{ vars.AWS_REGION }}" \
+              >/dev/null
+
+            echo "scaled_to_zero=true" >> "${GITHUB_OUTPUT}"
+            echo "PASS: final ECS desired count set to zero"
+          else
+            echo "scaled_to_zero=false" >> "${GITHUB_OUTPUT}"
+            echo "INFO: validated service intentionally left running"
+          fi
+
+      - name: Collect release diagnostics
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          set +e
+
+          mkdir -p release-evidence
+
+          aws ecs describe-services \
+            --cluster "${ECS_CLUSTER}" \
+            --services "${ECS_SERVICE}" \
+            --region "${{ vars.AWS_REGION }}" \
+            --query \
+            "services[0].{
+              status:status,
+              desiredCount:desiredCount,
+              runningCount:runningCount,
+              pendingCount:pendingCount,
+              taskDefinition:taskDefinition,
+              deployments:deployments[*].{
+                status:status,
+                rolloutState:rolloutState,
+                desiredCount:desiredCount,
+                runningCount:runningCount,
+                pendingCount:pendingCount,
+                failedTasks:failedTasks,
+                reason:rolloutStateReason
+              },
+              events:events[0:20].{
+                createdAt:createdAt,
+                message:message
+              }
+            }" \
+            --output json \
+            > release-evidence/ecs-service.json
+
+          STOPPED_TASKS=$(
+            aws ecs list-tasks \
+              --cluster "${ECS_CLUSTER}" \
+              --service-name "${ECS_SERVICE}" \
+              --desired-status STOPPED \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "taskArns[0:10]" \
+              --output text
+          )
+
+          if [ -n "${STOPPED_TASKS}" ]; then
+            aws ecs describe-tasks \
+              --cluster "${ECS_CLUSTER}" \
+              --tasks ${STOPPED_TASKS} \
+              --region "${{ vars.AWS_REGION }}" \
+              --query \
+              "tasks[*].{
+                lastStatus:lastStatus,
+                healthStatus:healthStatus,
+                stopCode:stopCode,
+                stoppedReason:stoppedReason,
+                containerStatus:containers[0].lastStatus,
+                containerHealth:containers[0].healthStatus,
+                containerReason:containers[0].reason,
+                exitCode:containers[0].exitCode
+              }" \
+              --output json \
+              > release-evidence/stopped-tasks.json
+          else
+            echo '[]' > release-evidence/stopped-tasks.json
+          fi
+
+          LOAD_BALANCER_ARN=$(
+            aws elbv2 describe-load-balancers \
+              --names "${ALB_NAME}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "LoadBalancers[0].LoadBalancerArn" \
+              --output text
+          )
+
+          TARGET_GROUP_ARN=$(
+            aws elbv2 describe-target-groups \
+              --load-balancer-arn "${LOAD_BALANCER_ARN}" \
+              --region "${{ vars.AWS_REGION }}" \
+              --query "TargetGroups[0].TargetGroupArn" \
+              --output text
+          )
+
+          aws elbv2 describe-target-health \
+            --target-group-arn "${TARGET_GROUP_ARN}" \
+            --region "${{ vars.AWS_REGION }}" \
+            --query \
+            "TargetHealthDescriptions[*].{
+              port:Target.Port,
+              state:TargetHealth.State,
+              reason:TargetHealth.Reason,
+              description:TargetHealth.Description
+            }" \
+            --output json \
+            > release-evidence/alb-target-health.json
+
+          {
+            echo "finished_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+            echo "job_status=${{ job.status }}"
+            echo "rollback_requested=${{ steps.rollback.outputs.requested || 'false' }}"
+            echo "scaled_to_zero=${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}"
+          } >> release-evidence/release-metadata.txt
+
+          echo "PASS: release diagnostics collected"
+
+      - name: Upload release evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecs-release-evidence-${{ github.run_id }}-${{ github.run_attempt }}
+          path: release-evidence/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Write release summary
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          {
+            echo "# Immutable ECS release"
+            echo
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Workflow result | \`${{ job.status }}\` |"
+            echo "| Workflow branch | \`${GITHUB_REF_NAME}\` |"
+            echo "| Requested image | \`${{ inputs.image_tag }}\` |"
+            echo "| Previous desired count | \`${{ steps.previous.outputs.desired_count || 'not captured' }}\` |"
+            echo "| Rollback requested | \`${{ steps.rollback.outputs.requested || 'false' }}\` |"
+            echo "| Final scale-to-zero requested | \`${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}\` |"
+            echo "| Evidence artifact | \`ecs-release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}\` |"
+            echo
+            echo "## Final ECS state"
+            echo
+
+            FINAL_STATE=$(
+              aws ecs describe-services \
+                --cluster "${ECS_CLUSTER}" \
+                --services "${ECS_SERVICE}" \
+                --region "${{ vars.AWS_REGION }}" \
+                --query \
+                "services[0].[status,desiredCount,runningCount,pendingCount]" \
+                --output text 2>/dev/null ||
+              echo "unavailable"
+            )
+
+            echo "\`${FINAL_STATE}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
