@@ -1,0 +1,58 @@
+version: 2
+
+updates:
+  - package-ecosystem: npm
+    directory: /app/demo-inference-api
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: America/Denver
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - application
+    commit-message:
+      prefix: deps(app)
+
+  - package-ecosystem: npm
+    directory: /infra/cdk
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:15"
+      timezone: America/Denver
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - infrastructure
+    commit-message:
+      prefix: deps(cdk)
+
+  - package-ecosystem: docker
+    directory: /app/demo-inference-api
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:30"
+      timezone: America/Denver
+    open-pull-requests-limit: 3
+    labels:
+      - dependencies
+      - container
+    commit-message:
+      prefix: deps(docker)
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:45"
+      timezone: America/Denver
+    open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - github-actions
+    commit-message:
+      prefix: deps(actions)

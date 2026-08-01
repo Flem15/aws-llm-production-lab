@@ -1,0 +1,115 @@
+name: Security Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - feature/security-scanning
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dependency-audit:
+    name: Dependency Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            app/demo-inference-api/package-lock.json
+            infra/cdk/package-lock.json
+
+      - name: Install application dependencies
+        working-directory: app/demo-inference-api
+        run: npm ci
+
+      - name: Audit application dependencies
+        working-directory: app/demo-inference-api
+        run: npm run security:audit
+
+      - name: Install CDK dependencies
+        working-directory: infra/cdk
+        run: npm ci
+
+      - name: Audit CDK dependencies
+        working-directory: infra/cdk
+        run: npm run security:audit
+
+  infrastructure-security:
+    name: Infrastructure Security Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: infra/cdk/package-lock.json
+
+      - name: Install CDK dependencies
+        working-directory: infra/cdk
+        run: npm ci
+
+      - name: Build CDK application
+        working-directory: infra/cdk
+        run: npm run build
+
+      - name: Run CDK architecture and security tests
+        working-directory: infra/cdk
+        run: npm test
+
+  container-security:
+    name: Container and Secret Scanning
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Build application image
+        working-directory: app/demo-inference-api
+        run: |
+          docker build \
+            --tag demo-inference-api:security-${GITHUB_SHA} \
+            .
+
+      - name: Scan container for fixable critical vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: demo-inference-api:security-${{ github.sha }}
+          scan-type: image
+          scanners: vuln
+          ignore-unfixed: true
+          severity: CRITICAL
+          format: table
+          exit-code: '1'
+
+      - name: Scan repository for secrets
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: secret
+          skip-dirs: .git,node_modules,cdk.out
+          format: table
+          exit-code: '1'
