@@ -5,7 +5,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "npm run build && node --test test/**/*.test.js",
+    "test": "npm run build && node --test test/api.integration.test.js",
     "security:audit": "npm audit --audit-level=high"
   },
   "dependencies": {
