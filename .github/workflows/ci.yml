@@ -43,6 +43,9 @@ jobs:
       - name: Build application
         run: npm run build
 
+      - name: Test application
+        run: npm test
+
       - name: Build local Docker image
         run: |
           docker build \
@@ -73,6 +76,9 @@ jobs:
 
       - name: Build CDK application
         run: npm run build
+
+      - name: Test CDK architecture
+        run: npm test
 
       - name: List CDK stacks
         run: npx aws-cdk list
