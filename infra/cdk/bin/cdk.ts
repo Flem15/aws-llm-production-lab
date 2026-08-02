@@ -8,8 +8,24 @@ import { FargateServiceStack } from '../lib/fargate-service-stack';
 import { ApiStack } from '../lib/api-stack';
 import { ObservabilityStack } from '../lib/observability-stack';
 import { GitHubOidcStack } from '../lib/github-oidc-stack';
+import { CostGovernanceStack } from '../lib/cost-governance-stack';
 
 const app = new cdk.App();
+
+const monthlyBudgetLimit = Number(
+  app.node.tryGetContext('monthlyBudgetLimit') ??
+    '100',
+);
+
+if (
+  !Number.isFinite(monthlyBudgetLimit) ||
+  monthlyBudgetLimit <= 0
+) {
+  throw new Error(
+    'monthlyBudgetLimit must be a positive number',
+  );
+}
+
 
 const imageTag =
   (app.node.tryGetContext('imageTag') as string | undefined) ??
@@ -98,5 +114,15 @@ new GitHubOidcStack(
   {
     ...commonProps,
     repository: ecrStack.repository,
+  },
+);
+
+
+new CostGovernanceStack(
+  app,
+  'LlmParityDevCostGovernanceStack',
+  {
+    ...commonProps,
+    monthlyBudgetLimit,
   },
 );
