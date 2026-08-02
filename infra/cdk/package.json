@@ -6,12 +6,13 @@
     "watch": "tsc -w",
     "test": "jest --runInBand",
     "cdk": "aws-cdk",
-    "synth": "aws-cdk synth"
+    "synth": "aws-cdk synth",
+    "security:audit": "npm audit --audit-level=high"
   },
   "devDependencies": {
     "@types/jest": "^30",
     "@types/node": "^24.12.0",
-    "aws-cdk": "2.1114.1",
+    "aws-cdk": "2.1134.0",
     "jest": "^30",
     "ts-jest": "^29",
     "ts-node": "^10.9.2",
