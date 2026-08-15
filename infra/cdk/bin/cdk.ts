@@ -115,6 +115,7 @@ new GitHubOidcStack(
   {
     ...commonProps,
     repository: ecrStack.repository,
+    httpApi: apiStack.httpApi,
   },
 );
 

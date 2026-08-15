@@ -80,6 +80,7 @@ function createSecurityTemplates(): SecurityTemplates {
     {
       ...commonProps,
       repository: ecrStack.repository,
+      httpApi: apiStack.httpApi,
     },
   );
 
@@ -242,5 +243,51 @@ describe('security boundaries', () => {
       ]),
     );
   });
+
+  test('GitHub OIDC role can invoke only the protected inference route', () => {
+    templates.githubOidc.hasResourceProperties(
+      'AWS::IAM::Policy',
+      {
+        PolicyDocument: {
+          Statement: Match.arrayWith([
+            Match.objectLike({
+              Sid:
+                'InvokeProtectedInferenceRoute',
+              Effect: 'Allow',
+              Action:
+                'execute-api:Invoke',
+              Resource:
+                Match.anyValue(),
+            }),
+          ]),
+        },
+      },
+    );
+
+    const policies =
+      templates.githubOidc.findResources(
+        'AWS::IAM::Policy',
+      );
+
+    const serialized =
+      JSON.stringify(policies);
+
+    expect(serialized).toContain(
+      '$default/POST/invoke',
+    );
+
+    expect(serialized).not.toContain(
+      '$default/*/*',
+    );
+
+    expect(serialized).not.toContain(
+      '/*/POST/invoke',
+    );
+
+    expect(serialized).not.toContain(
+      '/*/*/*',
+    );
+  });
+
 
 });
