@@ -2,9 +2,11 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as iam from 'aws-cdk-lib/aws-iam';
+import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 
 export interface GitHubOidcStackProps extends cdk.StackProps {
   repository: ecr.IRepository;
+  httpApi: apigwv2.HttpApi;
 }
 
 export class GitHubOidcStack extends cdk.Stack {
@@ -81,6 +83,23 @@ export class GitHubOidcStack extends cdk.Stack {
           'apigateway:GET',
         ],
         resources: ['*'],
+      }),
+    );
+
+    const protectedInvokeRouteArn =
+      cdk.Stack.of(this).formatArn({
+        service: 'execute-api',
+        resource: props.httpApi.httpApiId,
+        resourceName: '$default/POST/invoke',
+        arnFormat:
+          cdk.ArnFormat.SLASH_RESOURCE_NAME,
+      });
+
+    this.actionsRole.addToPolicy(
+      new iam.PolicyStatement({
+        sid: 'InvokeProtectedInferenceRoute',
+        actions: ['execute-api:Invoke'],
+        resources: [protectedInvokeRouteArn],
       }),
     );
 

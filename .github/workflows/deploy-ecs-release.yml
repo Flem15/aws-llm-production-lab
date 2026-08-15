@@ -339,6 +339,42 @@ jobs:
             );
           '
 
+      - name: Validate authenticated inference through API Gateway
+        shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
+          AWS_REGION: ${{ vars.AWS_REGION }}
+        run: |
+          set -euo pipefail
+
+          API_ID=$(
+            aws apigatewayv2 get-apis \
+              --region "${AWS_REGION}" \
+              --query "Items[?Name=='llm-parity-http-api'].ApiId | [0]" \
+              --output text
+          )
+
+          test -n "${API_ID}" && \
+          test "${API_ID}" != "None" && \
+          echo "PASS: API ID captured for authenticated validation"
+
+          API_ENDPOINT=$(
+            aws apigatewayv2 get-api \
+              --api-id "${API_ID}" \
+              --region "${AWS_REGION}" \
+              --query "ApiEndpoint" \
+              --output text
+          )
+
+          [[ "${API_ENDPOINT}" == https://* ]] && \
+          echo "PASS: API endpoint captured for authenticated validation"
+
+          export API_ENDPOINT
+
+          python3 \
+            .github/scripts/validate-api-auth.py && \
+          echo "PASS: API authorization control validated end to end"
+
       - name: Roll back failed release
         id: rollback
         if: ${{ failure() && steps.previous.outputs.task_definition != '' }}
@@ -537,6 +573,11 @@ jobs:
             echo "| Previous desired count | \`${{ steps.previous.outputs.desired_count || 'not captured' }}\` |"
             echo "| Rollback requested | \`${{ steps.rollback.outputs.requested || 'false' }}\` |"
             echo "| Final scale to zero | \`${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}\` |"
+            if [ -f "${EVIDENCE_DIR}/api-auth-validation.json" ]; then
+              echo "| API IAM validation | \`passed\` |"
+            else
+              echo "| API IAM validation | \`not completed\` |"
+            fi
             echo "| Evidence artifact | \`ecs-release-evidence-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}\` |"
             echo
             echo "## Final ECS state"
