@@ -118,7 +118,7 @@ export class FargateServiceStack extends cdk.Stack {
         serviceName: 'llm-parity-demo-inference-service',
         cluster: props.cluster,
         taskDefinition: this.taskDefinition,
-        desiredCount: 1,
+        desiredCount: 0,
         assignPublicIp: false,
         securityGroups: [this.serviceSecurityGroup],
         vpcSubnets: {
