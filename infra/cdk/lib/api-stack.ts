@@ -5,6 +5,7 @@ import * as integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
+import { STANDARD_TAGS } from './standard-tags';
 
 export interface ApiStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
@@ -81,6 +82,22 @@ export class ApiStack extends cdk.Stack {
         createDefaultStage: true,
       },
     );
+
+    const cfnHttpApi =
+      this.httpApi.node.defaultChild as
+        apigwv2.CfnApi;
+
+    const cfnVpcLink =
+      this.vpcLink.node.defaultChild as
+        apigwv2.CfnVpcLink;
+
+    for (
+      const [key, value] of
+      Object.entries(STANDARD_TAGS)
+    ) {
+      cfnHttpApi.tags.setTag(key, value);
+      cfnVpcLink.tags.setTag(key, value);
+    }
 
     const defaultStage =
       this.httpApi.defaultStage?.node.defaultChild as

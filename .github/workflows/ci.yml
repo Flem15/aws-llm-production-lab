@@ -85,3 +85,7 @@ jobs:
 
       - name: Synthesize CDK application
         run: npx aws-cdk synth --quiet
+
+      - name: Validate required cost-allocation tags
+        working-directory: infra/cdk
+        run: npm run tags:check

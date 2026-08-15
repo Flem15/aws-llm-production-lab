@@ -6,3 +6,7 @@ node_modules
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+
+# Keep source compliance script tracked even though compiled JS is ignored.
+!scripts/
+!scripts/check-required-tags.js

@@ -9,6 +9,7 @@ import { ApiStack } from '../lib/api-stack';
 import { ObservabilityStack } from '../lib/observability-stack';
 import { GitHubOidcStack } from '../lib/github-oidc-stack';
 import { CostGovernanceStack } from '../lib/cost-governance-stack';
+import { applyStandardTags } from '../lib/standard-tags';
 
 const app = new cdk.App();
 
@@ -126,3 +127,5 @@ new CostGovernanceStack(
     monthlyBudgetLimit,
   },
 );
+
+applyStandardTags(app);
