@@ -242,5 +242,33 @@ describe(
         );
       },
     );
+
+    test(
+      'routes diagnostic alarms to incident response',
+      () => {
+        const rules =
+          template.findResources(
+            'AWS::Events::Rule',
+          );
+
+        const serialized =
+          JSON.stringify(
+            rules,
+          );
+
+        expect(
+          serialized,
+        ).toContain(
+          'llm-parity-api-4xx',
+        );
+
+        expect(
+          serialized,
+        ).toContain(
+          'llm-parity-alb-high-target-response-time',
+        );
+      },
+    );
+
   },
 );

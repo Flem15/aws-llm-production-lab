@@ -3,6 +3,7 @@ import { Construct } from 'constructs';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
 import { HttpIamAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
+import { MappingValue, ParameterMapping } from 'aws-cdk-lib/aws-apigatewayv2';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -128,10 +129,17 @@ export class ApiStack extends cdk.Stack {
       props.listener,
       {
         vpcLink: this.vpcLink,
-        parameterMapping: new apigwv2.ParameterMapping()
-          .overwritePath(
-            apigwv2.MappingValue.requestPath(),
-          ),
+        parameterMapping:
+          new ParameterMapping()
+            .overwriteHeader(
+              'x-request-id',
+              MappingValue.contextVariable(
+                'requestId',
+              ),
+            )
+            .overwritePath(
+              MappingValue.requestPath(),
+            ),
       },
     );
 

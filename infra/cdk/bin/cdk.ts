@@ -11,6 +11,7 @@ import { GitHubOidcStack } from '../lib/github-oidc-stack';
 import { CostGovernanceStack } from '../lib/cost-governance-stack';
 import { applyStandardTags } from '../lib/standard-tags';
 import { IncidentResponseStack } from '../lib/incident-response-stack';
+import { DiagnosticsStack } from '../lib/diagnostics-stack';
 
 const app = new cdk.App();
 
@@ -137,6 +138,19 @@ new IncidentResponseStack(
   {
     ...commonProps,
     cluster: clusterStack.cluster,
+  },
+);
+
+
+new DiagnosticsStack(
+  app,
+  'LlmParityDevDiagnosticsStack',
+  {
+    ...commonProps,
+    httpApi:
+      apiStack.httpApi,
+    loadBalancer:
+      fargateServiceStack.loadBalancer,
   },
 );
 

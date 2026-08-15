@@ -179,3 +179,33 @@ test('unknown paths return HTTP 404', async () => {
 
   assert.equal(response.status, 404);
 });
+
+test(
+  'request correlation ID is preserved',
+  async () => {
+    const requestId =
+      'day11-correlation-test';
+
+    const response = await fetch(
+      `${baseUrl}/health`,
+      {
+        headers: {
+          'x-request-id':
+            requestId,
+        },
+      },
+    );
+
+    assert.equal(
+      response.status,
+      200,
+    );
+
+    assert.equal(
+      response.headers.get(
+        'x-request-id',
+      ),
+      requestId,
+    );
+  },
+);

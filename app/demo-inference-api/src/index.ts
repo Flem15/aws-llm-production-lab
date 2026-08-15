@@ -1,7 +1,10 @@
 import express from "express";
+import { requestObservability } from './request-observability';
 
 const app = express();
 app.use(express.json());
+
+app.use(requestObservability);
 
 const port = process.env.PORT || 3000;
 const version = process.env.APP_VERSION || "v1";
