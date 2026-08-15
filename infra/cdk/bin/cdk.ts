@@ -10,6 +10,7 @@ import { ObservabilityStack } from '../lib/observability-stack';
 import { GitHubOidcStack } from '../lib/github-oidc-stack';
 import { CostGovernanceStack } from '../lib/cost-governance-stack';
 import { applyStandardTags } from '../lib/standard-tags';
+import { IncidentResponseStack } from '../lib/incident-response-stack';
 
 const app = new cdk.App();
 
@@ -126,6 +127,16 @@ new CostGovernanceStack(
   {
     ...commonProps,
     monthlyBudgetLimit,
+  },
+);
+
+
+new IncidentResponseStack(
+  app,
+  'LlmParityDevIncidentResponseStack',
+  {
+    ...commonProps,
+    cluster: clusterStack.cluster,
   },
 );
 
