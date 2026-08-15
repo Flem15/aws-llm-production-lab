@@ -48,8 +48,8 @@ async function waitForHealth({
 
 before(async () => {
   serverProcess = spawn(
-    'npm',
-    ['start'],
+    process.execPath,
+    ['dist/index.js'],
     {
       cwd: process.cwd(),
       env: {
@@ -85,21 +85,57 @@ before(async () => {
 });
 
 after(async () => {
-  if (!serverProcess || serverProcess.killed) {
+  if (
+    !serverProcess ||
+    serverProcess.exitCode !== null ||
+    serverProcess.signalCode !== null
+  ) {
     return;
   }
 
+  const waitForExit = (timeoutMilliseconds) =>
+    new Promise((resolve) => {
+      let settled = false;
+
+      const finish = (exited) => {
+        if (settled) {
+          return;
+        }
+
+        settled = true;
+        clearTimeout(timer);
+        serverProcess.off('exit', onExit);
+        resolve(exited);
+      };
+
+      const onExit = () => {
+        finish(true);
+      };
+
+      const timer = setTimeout(
+        () => finish(false),
+        timeoutMilliseconds,
+      );
+
+      serverProcess.once('exit', onExit);
+    });
+
   serverProcess.kill('SIGTERM');
 
-  await Promise.race([
-    new Promise((resolve) => {
-      serverProcess.once('exit', resolve);
-    }),
-    sleep(3000),
-  ]);
+  const exitedGracefully =
+    await waitForExit(3000);
 
-  if (!serverProcess.killed) {
+  if (!exitedGracefully) {
     serverProcess.kill('SIGKILL');
+
+    const exitedAfterKill =
+      await waitForExit(3000);
+
+    if (!exitedAfterKill) {
+      throw new Error(
+        'Application process did not exit after SIGKILL',
+      );
+    }
   }
 });
 
