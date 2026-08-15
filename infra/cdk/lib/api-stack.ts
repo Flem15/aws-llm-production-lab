@@ -143,7 +143,31 @@ export class ApiStack extends cdk.Stack {
       },
     );
 
-    this.httpApi.addRoutes({
+    cfnHttpApi.corsConfiguration = {
+      allowOrigins: [
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+      ],
+      allowMethods: [
+        'GET',
+        'POST',
+        'OPTIONS',
+      ],
+      allowHeaders: [
+        'authorization',
+        'content-type',
+        'x-amz-content-sha256',
+        'x-amz-date',
+        'x-amz-security-token',
+        'x-request-id',
+      ],
+      exposeHeaders: [
+        'x-request-id',
+      ],
+      maxAge: 3600,
+    };
+
+this.httpApi.addRoutes({
       path: '/health',
       methods: [apigwv2.HttpMethod.GET],
       integration,
