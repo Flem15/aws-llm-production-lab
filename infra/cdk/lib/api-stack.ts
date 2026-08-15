@@ -2,6 +2,7 @@ import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 import * as integrations from 'aws-cdk-lib/aws-apigatewayv2-integrations';
+import { HttpIamAuthorizer } from 'aws-cdk-lib/aws-apigatewayv2-authorizers';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
@@ -142,6 +143,7 @@ export class ApiStack extends cdk.Stack {
 
     this.httpApi.addRoutes({
       path: '/invoke',
+      authorizer: new HttpIamAuthorizer(),
       methods: [apigwv2.HttpMethod.POST],
       integration,
     });
