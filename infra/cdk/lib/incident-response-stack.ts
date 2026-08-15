@@ -56,6 +56,8 @@ export class IncidentResponseStack extends Stack {
               'llm-parity-alb-5xx',
               'llm-parity-api-5xx',
               'llm-parity-api-high-latency',
+              'llm-parity-api-4xx',
+              'llm-parity-alb-high-target-response-time',
             ],
             state: {
               value: ['ALARM'],
