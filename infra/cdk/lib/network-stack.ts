@@ -14,7 +14,7 @@ export class NetworkStack extends cdk.Stack {
       vpcName: 'llm-parity-vpc',
       ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
       maxAzs: 2,
-      natGateways: 1,
+      natGateways: 0,
       subnetConfiguration: [
         {
           name: 'public',
