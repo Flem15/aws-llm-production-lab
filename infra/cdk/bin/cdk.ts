@@ -12,6 +12,7 @@ import { CostGovernanceStack } from '../lib/cost-governance-stack';
 import { applyStandardTags } from '../lib/standard-tags';
 import { IncidentResponseStack } from '../lib/incident-response-stack';
 import { DiagnosticsStack } from '../lib/diagnostics-stack';
+import { PrivateServiceEndpointsStack } from '../lib/private-service-endpoints-stack';
 
 const app = new cdk.App();
 
@@ -151,6 +152,19 @@ new DiagnosticsStack(
       apiStack.httpApi,
     loadBalancer:
       fargateServiceStack.loadBalancer,
+  },
+);
+
+
+new PrivateServiceEndpointsStack(
+  app,
+  'LlmParityDevPrivateServiceEndpointsStack',
+  {
+    ...commonProps,
+    vpc:
+      networkStack.vpc,
+    serviceSecurityGroup:
+      fargateServiceStack.serviceSecurityGroup,
   },
 );
 
