@@ -1,12 +1,14 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as iam from 'aws-cdk-lib/aws-iam';
 import * as apigwv2 from 'aws-cdk-lib/aws-apigatewayv2';
 
 export interface GitHubOidcStackProps extends cdk.StackProps {
   repository: ecr.IRepository;
   httpApi: apigwv2.HttpApi;
+  taskDefinition: ecs.FargateTaskDefinition;
 }
 
 export class GitHubOidcStack extends cdk.Stack {
@@ -52,6 +54,15 @@ export class GitHubOidcStack extends cdk.Stack {
       },
     );
 
+    // A resource-based bootstrap trust must not bypass release-role restrictions.
+    // This deny also protects against accidental future identity-policy grants.
+    this.actionsRole.addToPolicy(new iam.PolicyStatement({
+      sid: 'DenyInfrastructureEscalation',
+      effect: iam.Effect.DENY,
+      actions: ['sts:AssumeRole', 'cloudformation:*'],
+      resources: ['*'],
+    }));
+
     props.repository.grantPullPush(this.actionsRole);
 
     props.repository.grant(
@@ -59,16 +70,25 @@ export class GitHubOidcStack extends cdk.Stack {
       'ecr:DescribeImages',
     );
 
+    const stack = cdk.Stack.of(this);
+    const serviceArn = stack.formatArn({
+      service: 'ecs',
+      resource: 'service',
+      resourceName: 'llm-parity-cluster/llm-parity-demo-inference-service',
+    });
+
     this.actionsRole.addToPolicy(
       new iam.PolicyStatement({
         sid: 'InspectAndUpdateEcsRelease',
-        actions: [
-          'ecs:DescribeServices',
-          'ecs:DescribeTaskDefinition',
-          'ecs:ListTasks',
-          'ecs:DescribeTasks',
-          'ecs:UpdateService',
-        ],
+        actions: ['ecs:DescribeServices', 'ecs:UpdateService'],
+        resources: [serviceArn],
+      }),
+    );
+
+    this.actionsRole.addToPolicy(
+      new iam.PolicyStatement({
+        sid: 'InspectReleaseTasks',
+        actions: ['ecs:DescribeTaskDefinition', 'ecs:ListTasks', 'ecs:DescribeTasks'],
         resources: ['*'],
       }),
     );
@@ -103,34 +123,18 @@ export class GitHubOidcStack extends cdk.Stack {
       }),
     );
 
-    const bootstrapRoleArns = [
-      cdk.Stack.of(this).formatArn({
-        service: 'iam',
-        region: '',
-        resource: 'role',
-        resourceName: 'cdk-prod01-deploy-role-*',
-      }),
-      cdk.Stack.of(this).formatArn({
-        service: 'iam',
-        region: '',
-        resource: 'role',
-        resourceName: 'cdk-prod01-file-publishing-role-*',
-      }),
-      cdk.Stack.of(this).formatArn({
-        service: 'iam',
-        region: '',
-        resource: 'role',
-        resourceName: 'cdk-prod01-lookup-role-*',
-      }),
-    ];
-
-    this.actionsRole.addToPolicy(
-      new iam.PolicyStatement({
-        sid: 'AssumeCdkBootstrapRoles',
-        actions: ['sts:AssumeRole'],
-        resources: bootstrapRoleArns,
-      }),
-    );
+    this.actionsRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['ecs:RegisterTaskDefinition'],
+      resources: ['*'],
+    }));
+    this.actionsRole.addToPolicy(new iam.PolicyStatement({
+      actions: ['iam:PassRole'],
+      resources: [
+        props.taskDefinition.taskRole.roleArn,
+        props.taskDefinition.obtainExecutionRole().roleArn,
+      ],
+      conditions: { StringEquals: { 'iam:PassedToService': 'ecs-tasks.amazonaws.com' } },
+    }));
 
     new cdk.CfnOutput(this, 'GitHubActionsRoleName', {
       value: this.actionsRole.roleName,

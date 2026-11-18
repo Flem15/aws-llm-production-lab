@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Template,
@@ -117,9 +122,7 @@ describe(
             AuthorizationType?: string;
           };
 
-        expect(
-          invokeProperties.AuthorizationType,
-        ).toBe('AWS_IAM');
+        assert.strictEqual(invokeProperties.AuthorizationType, 'AWS_IAM');
       },
     );
 
@@ -140,15 +143,9 @@ describe(
         const authorizationType =
           healthProperties.AuthorizationType;
 
-        expect(
-          authorizationType,
-        ).not.toBe('AWS_IAM');
+        assert.notStrictEqual(authorizationType, 'AWS_IAM');
 
-        expect(
-          ['NONE', undefined],
-        ).toContain(
-          authorizationType,
-        );
+        assert.ok((['NONE', undefined]).includes(authorizationType));
       },
     );
 
@@ -168,12 +165,10 @@ describe(
               'AWS_IAM',
           );
 
-        expect(iamRoutes).toHaveLength(1);
+        assert.strictEqual((iamRoutes).length, 1);
 
-        expect(
-          iamRoutes[0].Properties
-            ?.RouteKey,
-        ).toBe('POST /invoke');
+        assert.strictEqual(iamRoutes[0].Properties
+            ?.RouteKey, 'POST /invoke');
       },
     );
 
@@ -192,13 +187,9 @@ describe(
                 ?.RouteKey,
           );
 
-        expect(
-          routeKeys,
-        ).not.toContain('$default');
+        assert.ok(!(routeKeys).includes('$default'));
 
-        expect(
-          routeKeys,
-        ).not.toContain('ANY /{proxy+}');
+        assert.ok(!(routeKeys).includes('ANY /{proxy+}'));
       },
     );
   },

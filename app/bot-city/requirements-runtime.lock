@@ -1,0 +1,26 @@
+# Exact tested Day 21 Python package versions; used as pip constraints.
+alpaca-py==0.45.0
+annotated-types==0.8.0
+boto3==1.44.0
+botocore==1.44.0
+certifi==2026.10.23
+charset-normalizer==3.5.2
+idna==3.20
+jmespath==1.1.0
+msgpack==1.2.4
+numpy==2.5.4
+pandas==3.1.1
+pydantic==2.14.3
+pydantic_core==2.50.4
+python-dateutil==2.9.0.post0
+python-dotenv==1.2.4
+PyYAML==6.0.3
+requests==2.34.2
+s3transfer==0.19.3
+six==1.17.0
+sseclient-py==1.9.0
+typing-inspection==0.4.5
+typing_extensions==4.16.0
+tzdata==2026.6
+urllib3==2.8.0
+websockets==17.4

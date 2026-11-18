@@ -10,6 +10,7 @@ import { Construct } from 'constructs';
 
 export interface DiagnosticsStackProps
   extends StackProps {
+  readonly environment?: 'dev' | 'prod';
   readonly httpApi:
     apigwv2.HttpApi;
 
@@ -55,7 +56,9 @@ export class DiagnosticsStack
       'Api4xxAlarm',
       {
         alarmName:
-          'llm-parity-api-4xx',
+          (props.environment === 'prod'
+          ? 'llm-parity-prod-api-4xx'
+          : 'llm-parity-api-4xx'),
         alarmDescription:
           'Detects elevated client-side or authorization errors on the public HTTP API',
         metric:
@@ -94,7 +97,9 @@ export class DiagnosticsStack
       'AlbTargetResponseTimeAlarm',
       {
         alarmName:
-          'llm-parity-alb-high-target-response-time',
+          (props.environment === 'prod'
+          ? 'llm-parity-prod-alb-high-target-response-time'
+          : 'llm-parity-alb-high-target-response-time'),
         alarmDescription:
           'Detects sustained high p95 response time from private ECS targets',
         metric:
@@ -122,7 +127,9 @@ export class DiagnosticsStack
         'DiagnosticsDashboard',
         {
           dashboardName:
-            'llm-parity-diagnostics',
+            (props.environment === 'prod'
+          ? 'llm-parity-prod-diagnostics'
+          : 'llm-parity-diagnostics'),
         },
       );
 

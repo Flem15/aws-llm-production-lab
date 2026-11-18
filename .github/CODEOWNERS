@@ -1,0 +1,5 @@
+# Ownership documentation for a solo-maintainer repository.
+# Required CODEOWNER approval is disabled; this is not independent review.
+/.github/ @Flem15
+/infra/ @Flem15
+/app/ @Flem15

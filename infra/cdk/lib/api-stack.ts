@@ -10,6 +10,7 @@ import * as logs from 'aws-cdk-lib/aws-logs';
 import { STANDARD_TAGS } from './standard-tags';
 
 export interface ApiStackProps extends cdk.StackProps {
+  readonly environment?: 'dev' | 'prod';
   vpc: ec2.IVpc;
   listener: elbv2.IApplicationListener;
   loadBalancerSecurityGroup: ec2.ISecurityGroup;
@@ -28,7 +29,9 @@ export class ApiStack extends cdk.Stack {
       'VpcLinkSecurityGroup',
       {
         vpc: props.vpc,
-        securityGroupName: 'llm-parity-api-vpc-link-sg',
+        securityGroupName: props.environment === 'prod'
+          ? 'llm-parity-prod-api-vpc-link-sg'
+          : 'llm-parity-api-vpc-link-sg',
         description:
           'Security group used by API Gateway VPC Link',
         allowAllOutbound: true,
@@ -56,7 +59,9 @@ export class ApiStack extends cdk.Stack {
       'PrivateAlbVpcLink',
       {
         vpc: props.vpc,
-        vpcLinkName: 'llm-parity-private-alb-vpc-link',
+        vpcLinkName: props.environment === 'prod'
+          ? 'llm-parity-prod-private-alb-vpc-link'
+          : 'llm-parity-private-alb-vpc-link',
         securityGroups: [this.vpcLinkSecurityGroup],
         subnets: {
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
@@ -68,9 +73,13 @@ export class ApiStack extends cdk.Stack {
       this,
       'HttpApiAccessLogGroup',
       {
-        logGroupName: '/aws/apigateway/llm-parity-http-api',
+        logGroupName: props.environment === 'prod'
+          ? '/aws/apigateway/llm-parity-prod-http-api'
+          : '/aws/apigateway/llm-parity-http-api',
         retention: logs.RetentionDays.ONE_WEEK,
-        removalPolicy: cdk.RemovalPolicy.DESTROY,
+        removalPolicy: props.environment === 'prod'
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
       },
     );
 
@@ -78,7 +87,9 @@ export class ApiStack extends cdk.Stack {
       this,
       'LlmParityHttpApi',
       {
-        apiName: 'llm-parity-http-api',
+        apiName: props.environment === 'prod'
+          ? 'llm-parity-prod-http-api'
+          : 'llm-parity-http-api',
         description:
           'Public HTTP API with a private ALB integration',
         createDefaultStage: true,
@@ -97,8 +108,16 @@ export class ApiStack extends cdk.Stack {
       const [key, value] of
       Object.entries(STANDARD_TAGS)
     ) {
-      cfnHttpApi.tags.setTag(key, value);
-      cfnVpcLink.tags.setTag(key, value);
+      cfnHttpApi.tags.setTag(
+          key,
+          key === 'Environment' && props.environment === 'prod'
+            ? 'prod' : value,
+        );
+      cfnVpcLink.tags.setTag(
+          key,
+          key === 'Environment' && props.environment === 'prod'
+            ? 'prod' : value,
+        );
     }
 
     const defaultStage =

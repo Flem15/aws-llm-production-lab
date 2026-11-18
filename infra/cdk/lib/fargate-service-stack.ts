@@ -7,6 +7,7 @@ import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 import * as logs from 'aws-cdk-lib/aws-logs';
 
 export interface FargateServiceStackProps extends cdk.StackProps {
+  readonly environment?: 'dev' | 'prod';
   vpc: ec2.IVpc;
   cluster: ecs.ICluster;
   repository: ecr.IRepository;
@@ -30,16 +31,22 @@ export class FargateServiceStack extends cdk.Stack {
     super(scope, id, props);
 
     const logGroup = new logs.LogGroup(this, 'DemoInferenceLogGroup', {
-      logGroupName: '/ecs/llm-parity/demo-inference-api',
+      logGroupName: props.environment === 'prod'
+          ? '/ecs/llm-parity-prod/demo-inference-api'
+          : '/ecs/llm-parity/demo-inference-api',
       retention: logs.RetentionDays.ONE_WEEK,
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      removalPolicy: props.environment === 'prod'
+          ? cdk.RemovalPolicy.RETAIN
+          : cdk.RemovalPolicy.DESTROY,
     });
 
     this.taskDefinition = new ecs.FargateTaskDefinition(
       this,
       'DemoInferenceTaskDefinition',
       {
-        family: 'llm-parity-demo-inference',
+        family: props.environment === 'prod'
+          ? 'llm-parity-prod-demo-inference'
+          : 'llm-parity-demo-inference',
         cpu: 256,
         memoryLimitMiB: 512,
       },
@@ -86,7 +93,9 @@ export class FargateServiceStack extends cdk.Stack {
       'DemoInferenceServiceSecurityGroup',
       {
         vpc: props.vpc,
-        securityGroupName: 'llm-parity-demo-inference-service-sg',
+        securityGroupName: props.environment === 'prod'
+          ? 'llm-parity-prod-demo-inference-service-sg'
+          : 'llm-parity-demo-inference-service-sg',
         description:
           'Security group for the demo inference ECS Fargate service',
         allowAllOutbound: true,
@@ -98,7 +107,9 @@ export class FargateServiceStack extends cdk.Stack {
       'PrivateAlbSecurityGroup',
       {
         vpc: props.vpc,
-        securityGroupName: 'llm-parity-private-alb-sg',
+        securityGroupName: props.environment === 'prod'
+          ? 'llm-parity-prod-private-alb-sg'
+          : 'llm-parity-private-alb-sg',
         description:
           'Security group for the private demo inference application load balancer',
         allowAllOutbound: true,
@@ -115,7 +126,9 @@ export class FargateServiceStack extends cdk.Stack {
       this,
       'DemoInferenceService',
       {
-        serviceName: 'llm-parity-demo-inference-service',
+        serviceName: props.environment === 'prod'
+          ? 'llm-parity-prod-demo-inference-service'
+          : 'llm-parity-demo-inference-service',
         cluster: props.cluster,
         taskDefinition: this.taskDefinition,
         desiredCount: 0,
@@ -138,7 +151,9 @@ export class FargateServiceStack extends cdk.Stack {
       'PrivateApplicationLoadBalancer',
       {
         vpc: props.vpc,
-        loadBalancerName: 'llm-parity-private-alb',
+        loadBalancerName: props.environment === 'prod'
+          ? 'llm-parity-prod-private-alb'
+          : 'llm-parity-private-alb',
         internetFacing: false,
         securityGroup: this.loadBalancerSecurityGroup,
         vpcSubnets: {

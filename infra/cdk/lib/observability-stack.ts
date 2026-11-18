@@ -6,6 +6,7 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import * as elbv2 from 'aws-cdk-lib/aws-elasticloadbalancingv2';
 
 export interface ObservabilityStackProps extends cdk.StackProps {
+  readonly environment?: 'dev' | 'prod';
   service: ecs.FargateService;
   loadBalancer: elbv2.IApplicationLoadBalancer;
   targetGroup: elbv2.IApplicationTargetGroup;
@@ -75,7 +76,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'HighCpuAlarm',
       {
-        alarmName: 'llm-parity-ecs-high-cpu',
+        alarmName: (props.environment === 'prod'
+          ? 'llm-parity-prod-ecs-high-cpu'
+          : 'llm-parity-ecs-high-cpu'),
         alarmDescription:
           'ECS service CPU utilization is at or above 80 percent.',
         metric: cpuMetric,
@@ -94,7 +97,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'HighMemoryAlarm',
       {
-        alarmName: 'llm-parity-ecs-high-memory',
+        alarmName: (props.environment === 'prod'
+          ? 'llm-parity-prod-ecs-high-memory'
+          : 'llm-parity-ecs-high-memory'),
         alarmDescription:
           'ECS service memory utilization is at or above 80 percent.',
         metric: memoryMetric,
@@ -113,7 +118,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'UnhealthyHostAlarm',
       {
-        alarmName: 'llm-parity-alb-unhealthy-target',
+        alarmName: (props.environment === 'prod'
+          ? 'llm-parity-prod-alb-unhealthy-target'
+          : 'llm-parity-alb-unhealthy-target'),
         alarmDescription:
           'The private ALB target group has an unhealthy target.',
         metric: unhealthyHostMetric,
@@ -132,7 +139,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'Alb5xxAlarm',
       {
-        alarmName: 'llm-parity-alb-5xx',
+        alarmName: (props.environment === 'prod'
+          ? 'llm-parity-prod-alb-5xx'
+          : 'llm-parity-alb-5xx'),
         alarmDescription:
           'The private ALB generated five or more 5XX responses.',
         metric: alb5xxMetric,
@@ -151,7 +160,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'Api5xxAlarm',
       {
-        alarmName: 'llm-parity-api-5xx',
+        alarmName: (props.environment === 'prod'
+          ? 'llm-parity-prod-api-5xx'
+          : 'llm-parity-api-5xx'),
         alarmDescription:
           'API Gateway returned five or more 5XX responses.',
         metric: api5xxMetric,
@@ -170,7 +181,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'ApiLatencyAlarm',
       {
-        alarmName: 'llm-parity-api-high-latency',
+        alarmName: (props.environment === 'prod'
+          ? 'llm-parity-prod-api-high-latency'
+          : 'llm-parity-api-high-latency'),
         alarmDescription:
           'API Gateway p95 latency is at or above 2000 milliseconds.',
         metric: apiLatencyMetric,
@@ -189,7 +202,9 @@ export class ObservabilityStack extends cdk.Stack {
       this,
       'OperationsDashboard',
       {
-        dashboardName: 'llm-parity-operations',
+        dashboardName: (props.environment === 'prod'
+          ? 'llm-parity-prod-operations'
+          : 'llm-parity-operations'),
       },
     );
 

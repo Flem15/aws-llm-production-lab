@@ -72,6 +72,7 @@ export class PrivateServiceEndpointsStack
               .ECR,
           privateDnsEnabled:
             true,
+          open: false,
           subnets:
             privateSubnetSelection,
           securityGroups: [
@@ -92,6 +93,7 @@ export class PrivateServiceEndpointsStack
               .ECR_DOCKER,
           privateDnsEnabled:
             true,
+          open: false,
           subnets:
             privateSubnetSelection,
           securityGroups: [
@@ -112,6 +114,7 @@ export class PrivateServiceEndpointsStack
               .CLOUDWATCH_LOGS,
           privateDnsEnabled:
             true,
+          open: false,
           subnets:
             privateSubnetSelection,
           securityGroups: [

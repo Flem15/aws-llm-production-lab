@@ -20,11 +20,15 @@ export const COST_ALLOCATION_TAG_KEYS = Object.freeze([
 
 export function applyStandardTags(
   scope: IConstruct,
+  environment: 'dev' | 'prod' = 'dev',
 ): void {
   for (
     const [key, value] of
     Object.entries(STANDARD_TAGS)
   ) {
-    Tags.of(scope).add(key, value);
+    Tags.of(scope).add(
+      key,
+      key === 'Environment' ? environment : value,
+    );
   }
 }

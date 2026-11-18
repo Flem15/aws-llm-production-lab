@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Template,
@@ -117,18 +122,14 @@ describe(
               'llm-parity-api-4xx',
           );
 
-        expect(apiAlarm).toBeDefined();
+        assert.notStrictEqual(apiAlarm, undefined);
 
         const serialized =
           JSON.stringify(apiAlarm);
 
-        expect(serialized).toContain(
-          'AWS/ApiGateway',
-        );
+        assert.ok((serialized).includes('AWS/ApiGateway'));
 
-        expect(serialized).toContain(
-          '4xx',
-        );
+        assert.ok((serialized).includes('4xx'));
       },
     );
 
@@ -167,18 +168,14 @@ describe(
               'llm-parity-alb-high-target-response-time',
           );
 
-        expect(albAlarm).toBeDefined();
+        assert.notStrictEqual(albAlarm, undefined);
 
         const serialized =
           JSON.stringify(albAlarm);
 
-        expect(serialized).toContain(
-          'AWS/ApplicationELB',
-        );
+        assert.ok((serialized).includes('AWS/ApplicationELB'));
 
-        expect(serialized).toContain(
-          'TargetResponseTime',
-        );
+        assert.ok((serialized).includes('TargetResponseTime'));
       },
     );
 
@@ -201,13 +198,9 @@ describe(
         const serialized =
           JSON.stringify(dashboards);
 
-        expect(serialized).toContain(
-          'API Client / Authorization Errors',
-        );
+        assert.ok((serialized).includes('API Client / Authorization Errors'));
 
-        expect(serialized).toContain(
-          'Private ALB Target Response Time',
-        );
+        assert.ok((serialized).includes('Private ALB Target Response Time'));
       },
     );
   },

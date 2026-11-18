@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Template,
@@ -74,11 +79,7 @@ describe(
               undefined,
           );
 
-        expect(
-          natRoutes,
-        ).toHaveLength(
-          0,
-        );
+        assert.strictEqual((natRoutes).length, 0);
       },
     );
 

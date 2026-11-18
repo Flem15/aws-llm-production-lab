@@ -10,6 +10,7 @@ import { Construct } from 'constructs';
 
 export interface CostGovernanceStackProps
   extends StackProps {
+  readonly environment?: 'dev' | 'prod';
   readonly monthlyBudgetLimit: number;
 }
 
@@ -34,14 +35,20 @@ export class CostGovernanceStack extends Stack {
     }
 
     this.budgetName =
-      'llm-parity-dev-monthly-cost-budget';
+      (props.environment === 'prod'
+          ? 'llm-parity-prod-monthly-cost-budget'
+          : 'llm-parity-dev-monthly-cost-budget');
 
     this.budgetAlertsTopic = new sns.Topic(
       this,
       'BudgetAlertsTopic',
       {
-        topicName: 'llm-parity-dev-budget-alerts',
-        displayName: 'LLM Parity Dev Budget Alerts',
+        topicName: (props.environment === 'prod'
+          ? 'llm-parity-prod-budget-alerts'
+          : 'llm-parity-dev-budget-alerts'),
+        displayName: (props.environment === 'prod'
+          ? 'LLM Parity Prod Budget Alerts'
+          : 'LLM Parity Dev Budget Alerts'),
       },
     );
 

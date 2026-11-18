@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -107,12 +112,10 @@ describe(
             ?.detail
             ?.alarmName;
 
-        expect(alarmNames).toEqual(
-          expect.arrayContaining([
-            'llm-parity-api-5xx',
-            'llm-parity-ecs-high-cpu',
-          ]),
-        );
+        {
+assert.ok((alarmNames).some((item: unknown) => isDeepStrictEqual(item, 'llm-parity-api-5xx')));
+assert.ok((alarmNames).some((item: unknown) => isDeepStrictEqual(item, 'llm-parity-ecs-high-cpu')));
+};
       },
     );
 
@@ -217,31 +220,14 @@ describe(
       },
     );
 
-    test(
-      'allows EventBridge to publish to the incident topic',
-      () => {
-        template.hasResourceProperties(
-          'AWS::SNS::TopicPolicy',
-          {
-            PolicyDocument: {
-              Statement:
-                Match.arrayWith([
-                  Match.objectLike({
-                    Effect:
-                      'Allow',
-                    Principal: {
-                      Service:
-                        'events.amazonaws.com',
-                    },
-                    Action:
-                      'sns:Publish',
-                  }),
-                ]),
-            },
-          },
-        );
-      },
-    );
+    test('publisher policies permit only the topic and encryption key', () => {
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: { Statement: Match.arrayWith([
+          Match.objectLike({ Effect: 'Allow', Action: 'sns:Publish', Resource: Match.anyValue() }),
+        ]) },
+      });
+      template.resourceCountIs('AWS::SNS::TopicPolicy', 0);
+    });
 
     test(
       'routes diagnostic alarms to incident response',
@@ -256,19 +242,33 @@ describe(
             rules,
           );
 
-        expect(
-          serialized,
-        ).toContain(
-          'llm-parity-api-4xx',
-        );
+        assert.ok((serialized).includes('llm-parity-api-4xx'));
 
-        expect(
-          serialized,
-        ).toContain(
-          'llm-parity-alb-high-target-response-time',
-        );
+        assert.ok((serialized).includes('llm-parity-alb-high-target-response-time'));
       },
     );
 
   },
 );
+
+test('development notifications encrypt retained key and use scoped EventBridge publisher roles', () => {
+  const template = createTemplate();
+  template.hasResource('AWS::KMS::Key', { DeletionPolicy: 'Retain', Properties: Match.objectLike({ EnableKeyRotation: true }) });
+  template.hasResourceProperties('AWS::SNS::Topic', { KmsMasterKeyId: Match.anyValue() });
+  const resources = template.toJSON().Resources;
+  const rules = Object.values(resources).filter((r: any) => r.Type === 'AWS::Events::Rule') as any[];
+  assert.strictEqual((rules).length, 3);
+  for (const rule of rules) assert.notStrictEqual(rule.Properties.Targets[0].RoleArn, undefined);
+  const roles = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Role') as any[];
+  assert.strictEqual((roles).length, 3);
+  for (const role of roles) {
+    const trust = role.Properties.AssumeRolePolicyDocument.Statement[0];
+    assert.deepStrictEqual(trust.Principal.Service, 'events.amazonaws.com');
+    assert.deepStrictEqual(trust.Condition.StringEquals['aws:SourceAccount'], '111111111111');
+    assert.notStrictEqual(trust.Condition.ArnEquals['aws:SourceArn'], undefined);
+  }
+  const policies = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Policy') as any[];
+  for (const policy of policies) for (const statement of policy.Properties.PolicyDocument.Statement) {
+    assert.notDeepStrictEqual(statement.Resource, '*');
+  }
+});

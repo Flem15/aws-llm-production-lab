@@ -3,6 +3,14 @@ name: Deploy Immutable ECS Release
 on:
   workflow_dispatch:
     inputs:
+      confirmation:
+        description: Type development-deployment to confirm this action
+        required: true
+        type: string
+      evidence_run_id:
+        description: Approved review run containing approved-release-evidence
+        required: true
+        type: string
       image_tag:
         description: Full 40-character Git SHA already present in ECR
         required: true
@@ -15,6 +23,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   id-token: write
 
 concurrency:
@@ -26,7 +35,6 @@ env:
   ECS_SERVICE: llm-parity-demo-inference-service
   ECR_REPOSITORY: demo-inference-api
   ALB_NAME: llm-parity-private-alb
-  CDK_STACK: LlmParityDevFargateServiceStack
   EVIDENCE_DIR: release-evidence
 
 jobs:
@@ -43,6 +51,8 @@ jobs:
 
       - name: Initialize release evidence
         shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
           set -euo pipefail
 
@@ -52,7 +62,7 @@ jobs:
             echo "workflow_run_id=${GITHUB_RUN_ID}"
             echo "workflow_run_attempt=${GITHUB_RUN_ATTEMPT}"
             echo "workflow_branch=${GITHUB_REF_NAME}"
-            echo "requested_image_tag=${{ inputs.image_tag }}"
+            echo "requested_image_tag=${IMAGE_TAG}"
             echo "return_to_zero=${{ inputs.return_to_zero }}"
             echo "started_at=$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           } > "${EVIDENCE_DIR}/release-metadata.txt"
@@ -85,6 +95,27 @@ jobs:
 
           echo "PASS: workflow is running from main"
 
+      - name: Verify live GitHub release protections
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_POLICY_READ_TOKEN || github.token }}
+          RELEASE_ACTION: deployment
+          RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
+          RELEASE_REGION: ${{ vars.AWS_REGION }}
+          RELEASE_ROLE: ${{ vars.AWS_ROLE_ARN }}
+          RELEASE_IMAGE_TAG: ${{ inputs.image_tag }}
+        run: python3 .github/scripts/release_authorization.py
+
+      - name: Download approved review evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: approved-release-evidence
+          run-id: ${{ inputs.evidence_run_id }}
+          github-token: ${{ github.token }}
+          path: release-review
+
+      - name: Require current predeployment evidence
+        run: python3 .github/scripts/predeployment_gate.py release-review/gate-input.json --stage deployment --source-revision "${GITHUB_SHA}"
+
       - name: Configure temporary AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.1.0
         with:
@@ -92,35 +123,49 @@ jobs:
           role-session-name: llm-parity-release-${{ github.run_id }}
           aws-region: ${{ vars.AWS_REGION }}
 
-      - name: Verify immutable image exists
+      - name: Verify development AWS account
         shell: bash
         env:
-          IMAGE_TAG: ${{ inputs.image_tag }}
+          EXPECTED_AWS_ACCOUNT: '655469962246'
         run: |
           set -euo pipefail
 
-          aws ecr describe-images \
-            --repository-name "${ECR_REPOSITORY}" \
-            --image-ids imageTag="${IMAGE_TAG}" \
-            --region "${{ vars.AWS_REGION }}" \
-            >/dev/null
+          ACTUAL_AWS_ACCOUNT=$(
+            aws sts get-caller-identity \
+              --query Account \
+              --output text
+          )
 
-          echo "PASS: immutable ECR image exists"
+          if [ "${ACTUAL_AWS_ACCOUNT}" != "${EXPECTED_AWS_ACCOUNT}" ]; then
+            echo "ERROR: AWS account mismatch; refusing deployment"
+            exit 1
+          fi
+
+          echo "PASS: AWS account matches the approved development account"
+
+      - name: Log in for digest and attestation verification
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Resolve and verify signed release digest
+        id: artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
+        run: |
+          set -euo pipefail
+          aws ecr describe-images --repository-name "${ECR_REPOSITORY}" \
+            --image-ids imageTag="${IMAGE_TAG}" --region "${{ vars.AWS_REGION }}" \
+            > "${EVIDENCE_DIR}/image-details.json"
+          DIGEST=$(python3 .github/scripts/verify_release.py "${IMAGE_TAG}" \
+            "${EVIDENCE_DIR}/image-details.json" "${EVIDENCE_DIR}/provenance.json" --review release-review/gate-input.json)
+          echo "digest=${DIGEST}" >> "${GITHUB_OUTPUT}"
 
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
           cache-dependency-path: infra/cdk/package-lock.json
-
-      - name: Install CDK dependencies
-        working-directory: infra/cdk
-        run: npm ci
-
-      - name: Build CDK application
-        working-directory: infra/cdk
-        run: npm run build
 
       - name: Capture previous ECS state
         id: previous
@@ -170,32 +215,29 @@ jobs:
 
           echo "PASS: previous ECS state captured"
 
-      - name: Preview immutable release
-        working-directory: infra/cdk
+      - name: Prepare immutable task definition
         env:
           IMAGE_TAG: ${{ inputs.image_tag }}
+          PREVIOUS_TASK_DEFINITION: ${{ steps.previous.outputs.task_definition }}
+          IMAGE_DIGEST: ${{ steps.artifact.outputs.digest }}
         run: |
           set -euo pipefail
-
-          npx aws-cdk diff "${CDK_STACK}" \
-            -c imageTag="${IMAGE_TAG}" \
-            | tee "../../${EVIDENCE_DIR}/cdk-diff.txt"
+          aws ecs describe-task-definition --task-definition "${PREVIOUS_TASK_DEFINITION}" \
+            > "${EVIDENCE_DIR}/previous-task.json"
+          python3 .github/scripts/prepare-ecs-release.py \
+            "${EVIDENCE_DIR}/previous-task.json" "${IMAGE_TAG}" "${IMAGE_DIGEST}" \
+            > "${EVIDENCE_DIR}/next-task.json"
 
       - name: Deploy immutable task definition
-        working-directory: infra/cdk
-        env:
-          IMAGE_TAG: ${{ inputs.image_tag }}
+        id: deploy_release
         run: |
           set -euo pipefail
-
-          npx aws-cdk deploy "${CDK_STACK}" \
-            -c imageTag="${IMAGE_TAG}" \
-            --require-approval never \
-            --outputs-file /tmp/release-outputs.json
-
-          cp \
-            /tmp/release-outputs.json \
-            "../../${EVIDENCE_DIR}/release-outputs.json"
+          NEXT_TASK=$(aws ecs register-task-definition \
+            --cli-input-json "file://${EVIDENCE_DIR}/next-task.json" \
+            --query taskDefinition.taskDefinitionArn --output text)
+          echo "started=true" >> "${GITHUB_OUTPUT}"
+          aws ecs update-service --cluster "${ECS_CLUSTER}" --service "${ECS_SERVICE}" \
+            --task-definition "${NEXT_TASK}" > "${EVIDENCE_DIR}/release-outputs.json"
 
       - name: Scale service to one for validation
         run: |
@@ -226,6 +268,7 @@ jobs:
         shell: bash
         env:
           IMAGE_TAG: ${{ inputs.image_tag }}
+          EXPECTED_IMAGE: 655469962246.dkr.ecr.us-east-2.amazonaws.com/demo-inference-api@${{ steps.artifact.outputs.digest }}
         run: |
           set -euo pipefail
 
@@ -247,15 +290,11 @@ jobs:
               --output text
           )
 
-          case "${ACTIVE_IMAGE}" in
-            *":${IMAGE_TAG}")
-              echo "PASS: ECS task definition uses requested immutable image"
-              ;;
-            *)
-              echo "ERROR: ECS task definition does not use requested image"
-              exit 1
-              ;;
-          esac
+          if [ "${ACTIVE_IMAGE}" != "${EXPECTED_IMAGE}" ]; then
+            echo "ERROR: active task definition does not match the verified digest"
+            exit 1
+          fi
+          echo "PASS: active task definition uses the verified image digest"
 
       - name: Verify ALB target health
         timeout-minutes: 10
@@ -377,7 +416,7 @@ jobs:
 
       - name: Roll back failed release
         id: rollback
-        if: ${{ failure() && steps.previous.outputs.task_definition != '' }}
+        if: ${{ failure() && steps.deploy_release.outputs.started == 'true' && steps.previous.outputs.task_definition != '' }}
         shell: bash
         env:
           PREVIOUS_TASK_DEFINITION:
@@ -404,7 +443,7 @@ jobs:
 
       - name: Enforce final ECS capacity
         id: cleanup
-        if: ${{ always() }}
+        if: ${{ always() && steps.deploy_release.outputs.started == 'true' }}
         shell: bash
         run: |
           set -euo pipefail
@@ -550,6 +589,8 @@ jobs:
       - name: Write release summary
         if: ${{ always() }}
         shell: bash
+        env:
+          IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
           FINAL_STATE=$(
             aws ecs describe-services \
@@ -569,7 +610,7 @@ jobs:
             echo "|---|---|"
             echo "| Workflow result | \`${{ job.status }}\` |"
             echo "| Workflow branch | \`${GITHUB_REF_NAME}\` |"
-            echo "| Requested image | \`${{ inputs.image_tag }}\` |"
+            echo "| Requested image | \`${IMAGE_TAG}\` |"
             echo "| Previous desired count | \`${{ steps.previous.outputs.desired_count || 'not captured' }}\` |"
             echo "| Rollback requested | \`${{ steps.rollback.outputs.requested || 'false' }}\` |"
             echo "| Final scale to zero | \`${{ steps.cleanup.outputs.scaled_to_zero || 'false' }}\` |"

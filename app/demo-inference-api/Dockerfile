@@ -1,4 +1,4 @@
-FROM node:24-alpine AS build
+FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS build
 
 WORKDIR /app
 
@@ -13,7 +13,10 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 
-FROM node:24-alpine AS runtime
+FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS runtime
+
+# Fixed version for CVE-2026-4738, from the same Alpine release repository.
+RUN apk add --no-cache --upgrade zlib=1.4-r0
 
 WORKDIR /app
 
