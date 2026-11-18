@@ -136,8 +136,12 @@ test('encrypted alarm topic supports CloudWatch and EventBridge without giving t
   const key = Object.values(t.findResources('AWS::KMS::Key'))[0] as any;
   assert.strictEqual(key.Properties.EnableKeyRotation, true);
   assert.strictEqual(key.DeletionPolicy, 'Retain');
-  assert.ok((JSON.stringify(key.Properties.KeyPolicy)).includes('cloudwatch.amazonaws.com'));
-  assert.ok(!(JSON.stringify(key.Properties.KeyPolicy)).includes('events.amazonaws.com'));
+  const servicePrincipals: string[] = key.Properties.KeyPolicy.Statement.flatMap((statement: any) => {
+    const service = statement.Principal?.Service;
+    return service === undefined ? [] : Array.isArray(service) ? service : [service];
+  });
+  assert.ok(servicePrincipals.some(service => service === 'cloudwatch.amazonaws.com'));
+  assert.ok(servicePrincipals.every(service => service !== 'events.amazonaws.com'));
   const publisher = Object.entries(t.findResources('AWS::IAM::Role')).find(([id]) => id.startsWith('StoppedEventPublisher'))![1] as any;
   assert.ok((JSON.stringify(publisher.Properties.AssumeRolePolicyDocument)).includes('aws:SourceArn'));
   for (const [id, policy] of Object.entries(t.findResources('AWS::IAM::Policy'))) {
