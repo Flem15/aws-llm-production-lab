@@ -244,25 +244,15 @@ describe(
       },
     );
 
-    test(
-      'endpoint security group does not allow arbitrary inbound CIDRs',
-      () => {
-        const ingress =
-          template.findResources(
-            'AWS::EC2::SecurityGroupIngress',
-          );
-
-        const serialized =
-          JSON.stringify(
-            ingress,
-          );
-
-        expect(
-          serialized,
-        ).not.toContain(
-          '0.0.0.0/0',
-        );
-      },
-    );
+    test('endpoint ingress is restricted to security group sources', () => {
+      template.allResourcesProperties('AWS::EC2::SecurityGroup', {
+        SecurityGroupIngress: Match.absent(),
+      });
+      template.allResourcesProperties('AWS::EC2::SecurityGroupIngress', {
+        CidrIp: Match.absent(),
+        CidrIpv6: Match.absent(),
+        SourceSecurityGroupId: Match.anyValue(),
+      });
+    });
   },
 );

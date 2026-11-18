@@ -15,6 +15,8 @@ const {
   'node:test',
 );
 
+const { once } = require('node:events');
+
 const port = 3100;
 
 const expectedVersion =
@@ -125,10 +127,8 @@ before(
   async () => {
     serverProcess =
       spawn(
-        'npm',
-        [
-          'start',
-        ],
+        process.execPath,
+        ['dist/index.js'],
         {
           cwd:
             process.cwd(),
@@ -169,35 +169,29 @@ before(
 
 after(
   async () => {
-    if (
-      !serverProcess ||
-      serverProcess.killed
-    ) {
+    if (!serverProcess || serverProcess.exitCode !== null ||
+        serverProcess.signalCode !== null || !serverProcess.pid) {
       return;
     }
 
-    serverProcess.kill(
-      'SIGTERM',
-    );
+    const exited = once(serverProcess, 'exit');
+    serverProcess.kill('SIGTERM');
 
-    await Promise.race([
-      new Promise(
-        (resolve) => {
-          serverProcess.once(
-            'exit',
-            resolve,
-          );
-        },
-      ),
-      sleep(3000),
-    ]);
+    let timeout;
+    try {
+      await Promise.race([
+        exited,
+        new Promise((resolve) => {
+          timeout = setTimeout(resolve, 3000);
+        }),
+      ]);
+    } finally {
+      clearTimeout(timeout);
+    }
 
-    if (
-      !serverProcess.killed
-    ) {
-      serverProcess.kill(
-        'SIGKILL',
-      );
+    if (serverProcess.exitCode === null && serverProcess.signalCode === null) {
+      serverProcess.kill('SIGKILL');
+      await exited;
     }
   },
 );

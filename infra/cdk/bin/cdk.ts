@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
 import { DefaultStackSynthesizer } from 'aws-cdk-lib';
+import { resolveEnvironmentConfig } from '../lib/environment-config';
 import { EcrStack } from '../lib/ecr-stack';
 import { NetworkStack } from '../lib/network-stack';
 import { EcsClusterStack } from '../lib/ecs-cluster-stack';
@@ -16,62 +17,37 @@ import { PrivateServiceEndpointsStack } from '../lib/private-service-endpoints-s
 
 const app = new cdk.App();
 
-const monthlyBudgetLimit = Number(
-  app.node.tryGetContext('monthlyBudgetLimit') ??
-    '100',
-);
+const config = resolveEnvironmentConfig({
+  devAccount: process.env.CDK_DEFAULT_ACCOUNT,
+  imageTag: app.node.tryGetContext('imageTag'),
+  monthlyBudgetLimit: app.node.tryGetContext('monthlyBudgetLimit'),
+});
+const { imageTag, monthlyBudgetLimit } = config;
 
-if (
-  !Number.isFinite(monthlyBudgetLimit) ||
-  monthlyBudgetLimit <= 0
-) {
-  throw new Error(
-    'monthlyBudgetLimit must be a positive number',
-  );
-}
-
-
-const imageTag =
-  (app.node.tryGetContext('imageTag') as string | undefined) ??
-  'v1';
-
-const validImageTag =
-  imageTag === 'v1' ||
-  /^[0-9a-f]{40}$/.test(imageTag);
-
-if (!validImageTag) {
-  throw new Error(
-    'imageTag must be v1 or a 40-character lowercase Git SHA',
-  );
-}
-
-const commonProps: cdk.StackProps = {
-  env: {
-    account: process.env.CDK_DEFAULT_ACCOUNT,
-    region: 'us-east-2',
-  },
+const stackProps = (): cdk.StackProps => ({
+  env: { account: config.account, region: config.region },
   synthesizer: new DefaultStackSynthesizer({
     qualifier: 'prod01',
   }),
-};
+});
 
 const ecrStack = new EcrStack(
   app,
   'LlmParityDevEcrStack',
-  commonProps,
+  stackProps(),
 );
 
 const networkStack = new NetworkStack(
   app,
   'LlmParityDevNetworkStack',
-  commonProps,
+  stackProps(),
 );
 
 const clusterStack = new EcsClusterStack(
   app,
   'LlmParityDevClusterStack',
   {
-    ...commonProps,
+    ...stackProps(),
     vpc: networkStack.vpc,
   },
 );
@@ -80,7 +56,7 @@ const fargateServiceStack = new FargateServiceStack(
   app,
   'LlmParityDevFargateServiceStack',
   {
-    ...commonProps,
+    ...stackProps(),
     vpc: networkStack.vpc,
     cluster: clusterStack.cluster,
     repository: ecrStack.repository,
@@ -92,7 +68,7 @@ const apiStack = new ApiStack(
   app,
   'LlmParityDevApiStack',
   {
-    ...commonProps,
+    ...stackProps(),
     vpc: networkStack.vpc,
     listener: fargateServiceStack.listener,
     loadBalancerSecurityGroup:
@@ -104,7 +80,7 @@ new ObservabilityStack(
   app,
   'LlmParityDevObservabilityStack',
   {
-    ...commonProps,
+    ...stackProps(),
     service: fargateServiceStack.service,
     loadBalancer: fargateServiceStack.loadBalancer,
     targetGroup: fargateServiceStack.targetGroup,
@@ -116,9 +92,10 @@ new GitHubOidcStack(
   app,
   'LlmParityDevGitHubOidcStack',
   {
-    ...commonProps,
+    ...stackProps(),
     repository: ecrStack.repository,
     httpApi: apiStack.httpApi,
+    taskDefinition: fargateServiceStack.taskDefinition,
   },
 );
 
@@ -127,7 +104,7 @@ new CostGovernanceStack(
   app,
   'LlmParityDevCostGovernanceStack',
   {
-    ...commonProps,
+    ...stackProps(),
     monthlyBudgetLimit,
   },
 );
@@ -137,7 +114,7 @@ new IncidentResponseStack(
   app,
   'LlmParityDevIncidentResponseStack',
   {
-    ...commonProps,
+    ...stackProps(),
     cluster: clusterStack.cluster,
   },
 );
@@ -147,7 +124,7 @@ new DiagnosticsStack(
   app,
   'LlmParityDevDiagnosticsStack',
   {
-    ...commonProps,
+    ...stackProps(),
     httpApi:
       apiStack.httpApi,
     loadBalancer:
@@ -160,7 +137,7 @@ new PrivateServiceEndpointsStack(
   app,
   'LlmParityDevPrivateServiceEndpointsStack',
   {
-    ...commonProps,
+    ...stackProps(),
     vpc:
       networkStack.vpc,
     serviceSecurityGroup:

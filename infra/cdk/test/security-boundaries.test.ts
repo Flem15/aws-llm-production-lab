@@ -81,6 +81,7 @@ function createSecurityTemplates(): SecurityTemplates {
       ...commonProps,
       repository: ecrStack.repository,
       httpApi: apiStack.httpApi,
+    taskDefinition: fargateStack.taskDefinition,
     },
   );
 
@@ -141,6 +142,37 @@ describe('security boundaries', () => {
     expect(serialized).not.toContain(
       'repo:*/*',
     );
+  });
+
+  test('GitHub role scopes release writes to the dev ECS service', () => {
+    const policies = templates.githubOidc.findResources('AWS::IAM::Policy');
+    const statements = Object.values(policies).flatMap(
+      (policy) => policy.Properties.PolicyDocument.Statement,
+    );
+    const releaseWrites = statements.filter(
+      (statement) => [statement.Action].flat().includes('ecs:UpdateService'),
+    );
+
+    expect(releaseWrites).toHaveLength(1);
+    const resource = JSON.stringify(releaseWrites[0].Resource);
+    expect(resource).toContain(
+      ':ecs:us-east-2:111111111111:service/llm-parity-cluster/llm-parity-demo-inference-service',
+    );
+    expect(resource).not.toContain('*');
+  });
+
+  test('release role cannot assume bootstrap roles or administer IAM', () => {
+    const policies = templates.githubOidc.findResources('AWS::IAM::Policy');
+    const statements = Object.values(policies).flatMap(
+      (policy) => policy.Properties.PolicyDocument.Statement,
+    );
+    const actions = statements.filter((statement) => statement.Effect === 'Allow').flatMap((statement) => [statement.Action].flat());
+    expect(actions).not.toContain('sts:AssumeRole');
+    expect(actions).not.toContain('iam:*');
+    expect(actions).toContain('ecs:RegisterTaskDefinition');
+    const passRole = statements.find((statement) => statement.Action === 'iam:PassRole');
+    expect(JSON.stringify(passRole.Resource)).not.toContain('*');
+    expect(passRole.Condition.StringEquals['iam:PassedToService']).toBe('ecs-tasks.amazonaws.com');
   });
 
   test('API Gateway applies conservative default throttling', () => {
@@ -290,4 +322,11 @@ describe('security boundaries', () => {
   });
 
 
+});
+
+test('GitHub release explicitly denies bootstrap escalation even if another policy grants it', () => {
+  const template = createSecurityTemplates().githubOidc;
+  template.hasResourceProperties('AWS::IAM::Policy', { PolicyDocument: { Statement: Match.arrayWith([
+    Match.objectLike({ Sid: 'DenyInfrastructureEscalation', Effect: 'Deny', Action: ['sts:AssumeRole', 'cloudformation:*'], Resource: '*' })
+  ]) } });
 });

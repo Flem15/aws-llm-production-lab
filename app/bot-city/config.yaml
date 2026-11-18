@@ -1,0 +1,58 @@
+# ─────────────────────────────────────────────────────────────
+#  Bot City config: one "worker" = one bot trading one ticker
+# ─────────────────────────────────────────────────────────────
+account:
+  broker: alpaca             # "alpaca" = Alpaca for everything (start here) · "webull" = Alpaca data + Webull orders
+  paper: true                # TRUE = Webull sandbox / Alpaca paper. Keep it true until you've tested for weeks
+  limit_buffer: 0.05         # Webull: buy limit = mid +5%, sell limit = mid −5% (so orders actually fill)
+  fill_timeout: 20           # seconds to wait for an order before cancel/reconcile safety logic
+  dollars_per_trade: 1000    # max premium spent per entry (qty = floor(budget / (price*100)))
+  max_daily_loss: 1500       # all workers combined: hit this and every bot goes off duty
+  poll_seconds: 15           # how often the live loop checks prices/exits
+
+schedule:                    # US/Eastern
+  first_entry: "09:35"
+  last_entry: "15:30"
+  flatten: "15:50"           # everything is closed by this time, no overnight holds on 0DTE
+
+defaults:                    # every worker inherits these unless it overrides them
+  dte: 1                     # 0 = same-day expiry (0DTE), 1 = next day (1DTE)
+  otm_steps: 0               # 0 = at-the-money strike, 1 = one $1 strike out of the money
+  stop_loss_pct: 0.20        # "stopped out": option down 20% from entry
+  take_profit_pct: 1.00      # "profit locked": option up 100%
+  trail_arm_pct: 0.20        # once the option is up 20%, the trailing stop arms...
+  trail_giveback_pct: 0.12   # ...and exits if it falls 12% from its peak ("rode the trail")
+  max_hold_minutes: 60
+  cooldown_minutes: 5        # wait after a trade closes before the next entry
+  profit_brake: 1500         # worker turns itself off after making this much today (null = no brake)
+  profit_lock_pct: 0.30      # ...or after giving back 30% of the day's best P&L (open trade included)
+  profit_lock_after: 500     #    the lock only arms once the worker has been up at least $500 today
+  max_worker_loss: 600       # worker turns itself off after losing this much today
+  max_trades: 10             # per worker per day
+
+workers:
+  - name: QQQ OG
+    symbol: QQQ
+    strategy: vwap_cross
+    params: {max_atr_distance: 0.8}
+  - name: QQQ TREND              # video 3: waits for a pullback to EMA9, then fires with the trend
+    symbol: QQQ
+    strategy: ema_pullback
+    params: {fast: 9, slow: 21, touch_atr: 0.25, confirm_atr: 0.10, max_wait_bars: 8}
+    profit_brake: null           # "NO BRAKE": lets a big trend day run...
+    profit_lock_pct: 0.25        # ...but clocks out after giving back 25% of the day's peak
+    # dollars_per_trade: 5000    # per-bot size override (the video's bot was buying ~150 contracts, ~$55k a trade)
+  - name: SPY
+    symbol: SPY
+    strategy: vwap_cross
+    params: {max_atr_distance: 0.8}
+  - name: IWM
+    symbol: IWM
+    strategy: vwap_cross
+    params: {max_atr_distance: 0.8}
+
+backtest:
+  iv: {QQQ: 0.20, SPY: 0.15, IWM: 0.24}   # implied vol used to price simulated options
+  default_iv: 0.20
+  slippage_pct: 0.02          # you pay 2% over mid on buys, get 2% under mid on sells
+  fee_per_contract: 0.05

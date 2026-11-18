@@ -3,15 +3,21 @@ import { Construct } from 'constructs';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as servicediscovery from 'aws-cdk-lib/aws-servicediscovery';
 
+export interface NetworkStackProps extends cdk.StackProps {
+  readonly environment?: 'dev' | 'prod';
+}
+
 export class NetworkStack extends cdk.Stack {
   public readonly vpc: ec2.Vpc;
   public readonly namespace: servicediscovery.PrivateDnsNamespace;
 
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: NetworkStackProps) {
     super(scope, id, props);
 
     this.vpc = new ec2.Vpc(this, 'LlmParityVpc', {
-      vpcName: 'llm-parity-vpc',
+      vpcName: props?.environment === 'prod'
+          ? 'llm-parity-prod-vpc'
+          : 'llm-parity-vpc',
       ipAddresses: ec2.IpAddresses.cidr('10.0.0.0/16'),
       maxAzs: 2,
       natGateways: 0,
@@ -30,7 +36,9 @@ export class NetworkStack extends cdk.Stack {
     });
 
     this.namespace = new servicediscovery.PrivateDnsNamespace(this, 'LlmInternalNamespace', {
-      name: 'llm.internal',
+      name: props?.environment === 'prod'
+          ? 'prod.llm.internal'
+          : 'llm.internal',
       vpc: this.vpc,
       description: 'Private namespace for ECS service discovery',
     });

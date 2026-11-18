@@ -1,0 +1,8 @@
+alpaca-py>=0.40
+pandas>=2.0
+numpy>=1.24
+pyyaml>=6.0
+python-dotenv>=1.0
+tzdata            # needed on Windows for US/Eastern time zones
+
+boto3>=1.35,<2

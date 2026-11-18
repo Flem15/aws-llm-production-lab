@@ -5,6 +5,7 @@ import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 export interface EcsClusterStackProps extends cdk.StackProps {
   vpc: ec2.IVpc;
+  readonly environment?: 'dev' | 'prod';
 }
 
 export class EcsClusterStack extends cdk.Stack {
@@ -15,7 +16,10 @@ export class EcsClusterStack extends cdk.Stack {
 
     this.cluster = new ecs.Cluster(this, 'LlmParityCluster', {
       vpc: props.vpc,
-      clusterName: 'llm-parity-cluster',
+      clusterName:
+        props.environment === 'prod'
+          ? 'llm-parity-prod-cluster'
+          : 'llm-parity-cluster',
       containerInsightsV2: ecs.ContainerInsights.ENABLED,
     });
 

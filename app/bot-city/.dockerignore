@@ -1,0 +1,14 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+state/
+dashboard/state.json
+backtest_trades.csv
+.git/
+.gitignore
+
+.env.*
+!.env.example
+data/

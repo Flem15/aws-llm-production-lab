@@ -217,31 +217,14 @@ describe(
       },
     );
 
-    test(
-      'allows EventBridge to publish to the incident topic',
-      () => {
-        template.hasResourceProperties(
-          'AWS::SNS::TopicPolicy',
-          {
-            PolicyDocument: {
-              Statement:
-                Match.arrayWith([
-                  Match.objectLike({
-                    Effect:
-                      'Allow',
-                    Principal: {
-                      Service:
-                        'events.amazonaws.com',
-                    },
-                    Action:
-                      'sns:Publish',
-                  }),
-                ]),
-            },
-          },
-        );
-      },
-    );
+    test('publisher policies permit only the topic and encryption key', () => {
+      template.hasResourceProperties('AWS::IAM::Policy', {
+        PolicyDocument: { Statement: Match.arrayWith([
+          Match.objectLike({ Effect: 'Allow', Action: 'sns:Publish', Resource: Match.anyValue() }),
+        ]) },
+      });
+      template.resourceCountIs('AWS::SNS::TopicPolicy', 0);
+    });
 
     test(
       'routes diagnostic alarms to incident response',
@@ -272,3 +255,25 @@ describe(
 
   },
 );
+
+test('development notifications encrypt retained key and use scoped EventBridge publisher roles', () => {
+  const template = createTemplate();
+  template.hasResource('AWS::KMS::Key', { DeletionPolicy: 'Retain', Properties: Match.objectLike({ EnableKeyRotation: true }) });
+  template.hasResourceProperties('AWS::SNS::Topic', { KmsMasterKeyId: Match.anyValue() });
+  const resources = template.toJSON().Resources;
+  const rules = Object.values(resources).filter((r: any) => r.Type === 'AWS::Events::Rule') as any[];
+  expect(rules).toHaveLength(3);
+  for (const rule of rules) expect(rule.Properties.Targets[0].RoleArn).toBeDefined();
+  const roles = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Role') as any[];
+  expect(roles).toHaveLength(3);
+  for (const role of roles) {
+    const trust = role.Properties.AssumeRolePolicyDocument.Statement[0];
+    expect(trust.Principal.Service).toEqual('events.amazonaws.com');
+    expect(trust.Condition.StringEquals['aws:SourceAccount']).toEqual('111111111111');
+    expect(trust.Condition.ArnEquals['aws:SourceArn']).toBeDefined();
+  }
+  const policies = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Policy') as any[];
+  for (const policy of policies) for (const statement of policy.Properties.PolicyDocument.Statement) {
+    expect(statement.Resource).not.toEqual('*');
+  }
+});

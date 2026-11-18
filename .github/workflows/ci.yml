@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - feature/github-oidc-cicd
+      - feature/bot-city-day15-hardening
   workflow_dispatch:
 
 permissions:
@@ -33,13 +34,24 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
           cache-dependency-path: app/demo-inference-api/package-lock.json
 
       - name: Install application dependencies
         run: npm ci
 
+      - name: Test release preparation
+        run: python3 ../../.github/scripts/test_prepare_ecs_release.py
+
+      - name: Test signed release verification
+        run: |
+          python3 ../../.github/scripts/test_verify_release.py
+          python3 ../../.github/scripts/test_release_review_binding.py
+      - name: Test release authorization checks
+        run: python3 ../../.github/scripts/test_release_authorization.py
+      - name: Test predeployment evidence gate
+        run: python3 ../../.github/scripts/test_predeployment_gate.py
       - name: Build application
         run: npm run build
 
@@ -67,7 +79,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '24'
           cache: npm
           cache-dependency-path: infra/cdk/package-lock.json
 
@@ -81,11 +93,89 @@ jobs:
         run: npm test
 
       - name: List CDK stacks
-        run: npx aws-cdk list
+        run: npm run cdk -- list --no-lookups -c imageTag="${GITHUB_SHA}"
 
       - name: Synthesize CDK application
-        run: npx aws-cdk synth --quiet
+        run: npm run synth -- --quiet --no-lookups -c imageTag="${GITHUB_SHA}"
 
       - name: Validate required cost-allocation tags
         working-directory: infra/cdk
         run: npm run tags:check
+
+
+      - name: Synthesize isolated production templates
+        env:
+          LLM_PARITY_PROD_SYNTH_ONLY: '1'
+        run: |
+          npm run synth -- --quiet --no-lookups --output cdk.out/prod \
+            --app 'npx ts-node --prefer-ts-exts bin/cdk-prod.ts' \
+            -c prodAccount=111122223333 \
+            -c imageTag="${GITHUB_SHA}" \
+            -c monthlyBudgetLimit=100
+
+      - name: Synthesize disabled Bot City development templates offline
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: |
+          npm run synth -- --quiet --no-lookups --output cdk.out/bot-city \
+            --app 'npx ts-node --prefer-ts-exts bin/cdk-bot-city.ts' \
+            -c botCityImageDigest=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            -c botCitySecretArn=arn:aws:secretsmanager:us-east-2:655469962246:secret:bot-city-paper-Ab1234 \
+            -c botCityPaperAccountId=offline-ci-account
+
+      - name: Synthesize managed egress at zero capacity offline
+        env:
+          AWS_EC2_METADATA_DISABLED: 'true'
+        run: |
+          npm run synth -- --quiet --no-lookups --output cdk.out/bot-city-egress \
+            --app 'npx ts-node --prefer-ts-exts bin/cdk-bot-city.ts' \
+            -c botCityImageDigest=sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa \
+            -c botCitySecretArn=arn:aws:secretsmanager:us-east-2:655469962246:secret:bot-city-paper-Ab1234 \
+            -c botCityPaperAccountId=offline-ci-account \
+            -c botCityManagedEgress=true -c botCityEgressReviewId=offline-ci-only \
+            -c botCityProxyImageDigest=sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb
+
+  egress-proxy:
+    name: Restricted Egress Security and Docker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/egress-proxy
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install 'pytest>=8,<9'
+      - run: python -m pytest -q tests
+      - run: docker build --tag bot-city-egress:ci-${GITHUB_SHA} .
+
+  bot-city:
+    name: Bot City Safety and Docker
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app/bot-city
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: bash scripts_ci.sh
+      - run: docker build --tag bot-city:ci-${GITHUB_SHA} .
+
+  release-image-security:
+    name: Release Image Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build and scan all release images
+        run: |
+          set -euo pipefail
+          docker build -t bot-city:security app/bot-city
+          docker build -t restricted-proxy:security app/egress-proxy
+          docker build -t demo-inference-api:security app/demo-inference-api
+          python3 .github/scripts/scan_release_image.py bot-city:security scan-bot-city
+          python3 .github/scripts/scan_release_image.py restricted-proxy:security scan-proxy
+          python3 .github/scripts/scan_release_image.py demo-inference-api:security scan-api
