@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import { Match, Template } from 'aws-cdk-lib/assertions';
 import { NetworkStack } from '../lib/network-stack';
@@ -50,9 +55,9 @@ describe('Stage B production isolation', () => {
     const { network, ecr, cluster } = makeApp();
 
     for (const stack of [network, ecr, cluster]) {
-      expect(stack.account).toBe(PROD_ACCOUNT);
-      expect(stack.account).not.toBe(DEV_ACCOUNT);
-      expect(stack.region).toBe('us-east-2');
+      assert.strictEqual(stack.account, PROD_ACCOUNT);
+      assert.notStrictEqual(stack.account, DEV_ACCOUNT);
+      assert.strictEqual(stack.region, 'us-east-2');
     }
   });
 
@@ -97,15 +102,15 @@ describe('Stage B production isolation', () => {
       'AWS::ECR::Repository',
     );
 
-    expect(Object.keys(repositories)).toHaveLength(1);
+    assert.strictEqual((Object.keys(repositories)).length, 1);
 
     const repository = Object.values(repositories)[0] as {
       DeletionPolicy?: string;
       UpdateReplacePolicy?: string;
     };
 
-    expect(repository.DeletionPolicy).toBe('Retain');
-    expect(repository.UpdateReplacePolicy).toBe('Retain');
+    assert.strictEqual(repository.DeletionPolicy, 'Retain');
+    assert.strictEqual(repository.UpdateReplacePolicy, 'Retain');
   });
 
   test('uses a production ECS cluster name', () => {

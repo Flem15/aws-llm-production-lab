@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -135,13 +140,9 @@ describe('security boundaries', () => {
 
     const serialized = JSON.stringify(roles);
 
-    expect(serialized).not.toContain(
-      'repo:Flem15/*',
-    );
+    assert.ok(!(serialized).includes('repo:Flem15/*'));
 
-    expect(serialized).not.toContain(
-      'repo:*/*',
-    );
+    assert.ok(!(serialized).includes('repo:*/*'));
   });
 
   test('GitHub role scopes release writes to the dev ECS service', () => {
@@ -153,12 +154,10 @@ describe('security boundaries', () => {
       (statement) => [statement.Action].flat().includes('ecs:UpdateService'),
     );
 
-    expect(releaseWrites).toHaveLength(1);
+    assert.strictEqual((releaseWrites).length, 1);
     const resource = JSON.stringify(releaseWrites[0].Resource);
-    expect(resource).toContain(
-      ':ecs:us-east-2:111111111111:service/llm-parity-cluster/llm-parity-demo-inference-service',
-    );
-    expect(resource).not.toContain('*');
+    assert.ok((resource).includes(':ecs:us-east-2:111111111111:service/llm-parity-cluster/llm-parity-demo-inference-service'));
+    assert.ok(!(resource).includes('*'));
   });
 
   test('release role cannot assume bootstrap roles or administer IAM', () => {
@@ -167,12 +166,12 @@ describe('security boundaries', () => {
       (policy) => policy.Properties.PolicyDocument.Statement,
     );
     const actions = statements.filter((statement) => statement.Effect === 'Allow').flatMap((statement) => [statement.Action].flat());
-    expect(actions).not.toContain('sts:AssumeRole');
-    expect(actions).not.toContain('iam:*');
-    expect(actions).toContain('ecs:RegisterTaskDefinition');
+    assert.ok(!(actions).includes('sts:AssumeRole'));
+    assert.ok(!(actions).includes('iam:*'));
+    assert.ok((actions).includes('ecs:RegisterTaskDefinition'));
     const passRole = statements.find((statement) => statement.Action === 'iam:PassRole');
-    expect(JSON.stringify(passRole.Resource)).not.toContain('*');
-    expect(passRole.Condition.StringEquals['iam:PassedToService']).toBe('ecs-tasks.amazonaws.com');
+    assert.ok(!(JSON.stringify(passRole.Resource)).includes('*'));
+    assert.strictEqual(passRole.Condition.StringEquals['iam:PassedToService'], 'ecs-tasks.amazonaws.com');
   });
 
   test('API Gateway applies conservative default throttling', () => {
@@ -233,7 +232,7 @@ describe('security boundaries', () => {
         'AWS::ECS::TaskDefinition',
       );
 
-    expect(Object.keys(taskDefinitions)).toHaveLength(1);
+    assert.strictEqual((Object.keys(taskDefinitions)).length, 1);
 
     const taskDefinition = Object.values(
       taskDefinitions,
@@ -256,24 +255,20 @@ describe('security boundaries', () => {
           definition.Name === 'demo-inference-api',
       );
 
-    expect(container).toBeDefined();
+    assert.notStrictEqual(container, undefined);
 
     const imageExpression = JSON.stringify(
       container?.Image,
     );
 
-    expect(imageExpression).toContain(
-      immutableImageTag,
-    );
+    assert.ok((imageExpression).includes(immutableImageTag));
 
-    expect(container?.Environment).toEqual(
-      expect.arrayContaining([
-        {
+    {
+assert.ok((container?.Environment ?? []).some((item: unknown) => isDeepStrictEqual(item, {
           Name: 'APP_VERSION',
           Value: immutableImageTag,
-        },
-      ]),
-    );
+        })));
+};
   });
 
   test('GitHub OIDC role can invoke only the protected inference route', () => {
@@ -304,21 +299,13 @@ describe('security boundaries', () => {
     const serialized =
       JSON.stringify(policies);
 
-    expect(serialized).toContain(
-      '$default/POST/invoke',
-    );
+    assert.ok((serialized).includes('$default/POST/invoke'));
 
-    expect(serialized).not.toContain(
-      '$default/*/*',
-    );
+    assert.ok(!(serialized).includes('$default/*/*'));
 
-    expect(serialized).not.toContain(
-      '/*/POST/invoke',
-    );
+    assert.ok(!(serialized).includes('/*/POST/invoke'));
 
-    expect(serialized).not.toContain(
-      '/*/*/*',
-    );
+    assert.ok(!(serialized).includes('/*/*/*'));
   });
 
 

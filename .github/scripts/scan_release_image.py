@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Scan the exact local image before publication; never publish or deploy."""
-import collections,json,re,subprocess,sys,tempfile
+import collections,json,os,re,subprocess,sys,tempfile
 from pathlib import Path
 SCANNER='aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e'
 
@@ -23,9 +23,10 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         root=Path(tmp);(root/'reports').mkdir();(root/'cache').mkdir()
         subprocess.run(['docker','save','-o',str(root/'image.tar'),identity],check=True)
-        subprocess.run(['docker','run','--rm','--read-only','--tmpfs','/tmp:rw,noexec,nosuid,size=512m',
+        subprocess.run(['docker','run','--rm','--user',f'{os.getuid()}:{os.getgid()}',
+            '--env','TRIVY_CACHE_DIR=/cache','--read-only','--tmpfs','/tmp:rw,noexec,nosuid,size=512m',
             '-v',str(root/'image.tar')+':/image.tar:ro','-v',str(root/'reports')+':/reports',
-            '-v',str(root/'cache')+':/root/.cache/trivy',SCANNER,'image','--input','/image.tar',
+            '-v',str(root/'cache')+':/cache',SCANNER,'image','--input','/image.tar',
             '--ignorefile','/dev/null','--scanners','vuln,secret','--list-all-pkgs',
             '--format','json','--output','/reports/scan.json','--timeout','15m'],check=True,timeout=1000)
         raw=(root/'reports/scan.json').read_text();report=json.loads(raw)

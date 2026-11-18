@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -123,7 +128,7 @@ describe('cost governance', () => {
         'AWS::Budgets::Budget',
       );
 
-    expect(Object.keys(budgets)).toHaveLength(1);
+    assert.strictEqual((Object.keys(budgets)).length, 1);
 
     const budget = Object.values(budgets)[0] as {
       Properties?: {
@@ -139,33 +144,27 @@ describe('cost governance', () => {
       budget.Properties
         ?.NotificationsWithSubscribers ?? [];
 
-    expect(notifications).toHaveLength(3);
+    assert.strictEqual((notifications).length, 3);
 
     for (const notification of notifications) {
-      expect(notification.Subscribers).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
+      {
+assert.ok((notification.Subscribers ?? []).some((item: unknown) => matchesPartial(item, {
             SubscriptionType: 'SNS',
-          }),
-        ]),
-      );
+          })));
+};
     }
   });
 
   test('rejects invalid monthly limits', () => {
     const app = new cdk.App();
 
-    expect(
-      () =>
+    assert.throws(() =>
         new CostGovernanceStack(
           app,
           'InvalidCostGovernanceStack',
           {
             monthlyBudgetLimit: 0,
           },
-        ),
-    ).toThrow(
-      'monthlyBudgetLimit must be a positive number',
-    );
+        ), (error: unknown) => error instanceof Error && error.message.includes('monthlyBudgetLimit must be a positive number'));
   });
 });

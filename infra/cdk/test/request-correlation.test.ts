@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Template,
@@ -108,11 +113,7 @@ describe(
         const serialized =
           JSON.stringify(stages);
 
-        expect(
-          serialized,
-        ).toContain(
-          '$context.requestId',
-        );
+        assert.ok((serialized).includes('$context.requestId'));
       },
     );
 
@@ -129,17 +130,9 @@ describe(
             integrations,
           );
 
-        expect(
-          serialized,
-        ).toContain(
-          'x-request-id',
-        );
+        assert.ok((serialized).includes('x-request-id'));
 
-        expect(
-          serialized,
-        ).toContain(
-          '$context.requestId',
-        );
+        assert.ok((serialized).includes('$context.requestId'));
       },
     );
   },

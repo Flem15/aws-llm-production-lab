@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -96,9 +101,7 @@ describe(
               'Interface',
           );
 
-        expect(
-          interfaceEndpoints,
-        ).toHaveLength(3);
+        assert.strictEqual((interfaceEndpoints).length, 3);
       },
     );
 
@@ -134,35 +137,21 @@ describe(
             },
           );
 
-        expect(
-          s3Endpoint,
-        ).toBeDefined();
+        assert.notStrictEqual(s3Endpoint, undefined);
 
-        expect(
-          s3Endpoint
+        assert.strictEqual(s3Endpoint
             ?.Properties
-            ?.VpcEndpointType,
-        ).toBe(
-          'Gateway',
-        );
+            ?.VpcEndpointType, 'Gateway');
 
-        expect(
-          s3Endpoint
+        assert.strictEqual((s3Endpoint
             ?.Properties
-            ?.RouteTableIds,
-        ).toHaveLength(
-          2,
-        );
+            ?.RouteTableIds).length, 2);
 
-        expect(
-          JSON.stringify(
+        assert.ok((JSON.stringify(
             s3Endpoint
               ?.Properties
               ?.ServiceName,
-          ),
-        ).toContain(
-          '.s3',
-        );
+          )).includes('.s3'));
       },
     );
 

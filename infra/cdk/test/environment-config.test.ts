@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import {
   resolveEnvironmentConfig,
 } from '../lib/environment-config';
@@ -9,85 +14,78 @@ describe('Day 14 environment configuration', () => {
   test('preserves development defaults', () => {
     const config = resolveEnvironmentConfig({});
 
-    expect(config.name).toBe('dev');
-    expect(config.account).toBe('655469962246');
-    expect(config.region).toBe('us-east-2');
-    expect(config.stackPrefix).toBe('LlmParityDev');
-    expect(config.resourcePrefix).toBe('llm-parity');
-    expect(config.githubEnvironment).toBe('dev');
-    expect(config.monthlyBudgetLimit).toBe(100);
-    expect(config.imageTag).toBe('v1');
+    assert.strictEqual(config.name, 'dev');
+    assert.strictEqual(config.account, '655469962246');
+    assert.strictEqual(config.region, 'us-east-2');
+    assert.strictEqual(config.stackPrefix, 'LlmParityDev');
+    assert.strictEqual(config.resourcePrefix, 'llm-parity');
+    assert.strictEqual(config.githubEnvironment, 'dev');
+    assert.strictEqual(config.monthlyBudgetLimit, 100);
+    assert.strictEqual(config.imageTag, 'v1');
   });
 
   test('rejects unsupported environments', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'staging',
-      }),
-    ).toThrow();
+      }));
   });
 
   test('rejects an unexpected development account', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'dev',
         devAccount: PROD_ACCOUNT,
-      }),
-    ).toThrow();
+      }));
   });
 
   test('rejects production without an account', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'prod',
         imageTag: VALID_SHA,
         monthlyBudgetLimit: 250,
-      }),
-    ).toThrow();
+      }));
   });
 
   test('rejects production in the development account', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'prod',
         prodAccount: '655469962246',
         imageTag: VALID_SHA,
         monthlyBudgetLimit: 250,
-      }),
-    ).toThrow();
+      }));
   });
 
   test('rejects mutable production image tags', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'prod',
         prodAccount: PROD_ACCOUNT,
         imageTag: 'v1',
         monthlyBudgetLimit: 250,
-      }),
-    ).toThrow();
+      }));
   });
 
   test('requires an explicit production budget', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'prod',
         prodAccount: PROD_ACCOUNT,
         imageTag: VALID_SHA,
-      }),
-    ).toThrow();
+      }));
   });
 
   test('rejects production deployment enablement', () => {
-    expect(() =>
+    assert.throws(() =>
       resolveEnvironmentConfig({
         environment: 'prod',
         prodAccount: PROD_ACCOUNT,
         imageTag: VALID_SHA,
         monthlyBudgetLimit: 250,
         enableProductionDeployment: true,
-      }),
-    ).toThrow();
+      }));
   });
 
   test('resolves production with deployment disabled', () => {
@@ -98,11 +96,11 @@ describe('Day 14 environment configuration', () => {
       monthlyBudgetLimit: 250,
     });
 
-    expect(config.name).toBe('prod');
-    expect(config.account).toBe(PROD_ACCOUNT);
-    expect(config.stackPrefix).toBe('LlmParityProd');
-    expect(config.resourcePrefix).toBe('llm-parity-prod');
-    expect(config.githubEnvironment).toBe('production');
-    expect(config.deploymentEnabled).toBe(false);
+    assert.strictEqual(config.name, 'prod');
+    assert.strictEqual(config.account, PROD_ACCOUNT);
+    assert.strictEqual(config.stackPrefix, 'LlmParityProd');
+    assert.strictEqual(config.resourcePrefix, 'llm-parity-prod');
+    assert.strictEqual(config.githubEnvironment, 'production');
+    assert.strictEqual(config.deploymentEnabled, false);
   });
 });

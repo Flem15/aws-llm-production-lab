@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -20,7 +25,7 @@ const requiredTagArray = Object.entries(
 
 describe('standard cost-allocation tags', () => {
   test('defines the expected project tagging standard', () => {
-    expect(STANDARD_TAGS).toEqual({
+    assert.deepStrictEqual(STANDARD_TAGS, {
       Project:
         'aws-llm-production-parity-lab',
       Environment: 'dev',
@@ -32,9 +37,7 @@ describe('standard cost-allocation tags', () => {
   });
 
   test('defines the financial cost-allocation dimensions', () => {
-    expect(
-      COST_ALLOCATION_TAG_KEYS,
-    ).toEqual([
+    assert.deepStrictEqual(COST_ALLOCATION_TAG_KEYS, [
       'Project',
       'Environment',
       'CostCenter',

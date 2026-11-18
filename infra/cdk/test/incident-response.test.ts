@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -107,12 +112,10 @@ describe(
             ?.detail
             ?.alarmName;
 
-        expect(alarmNames).toEqual(
-          expect.arrayContaining([
-            'llm-parity-api-5xx',
-            'llm-parity-ecs-high-cpu',
-          ]),
-        );
+        {
+assert.ok((alarmNames).some((item: unknown) => isDeepStrictEqual(item, 'llm-parity-api-5xx')));
+assert.ok((alarmNames).some((item: unknown) => isDeepStrictEqual(item, 'llm-parity-ecs-high-cpu')));
+};
       },
     );
 
@@ -239,17 +242,9 @@ describe(
             rules,
           );
 
-        expect(
-          serialized,
-        ).toContain(
-          'llm-parity-api-4xx',
-        );
+        assert.ok((serialized).includes('llm-parity-api-4xx'));
 
-        expect(
-          serialized,
-        ).toContain(
-          'llm-parity-alb-high-target-response-time',
-        );
+        assert.ok((serialized).includes('llm-parity-alb-high-target-response-time'));
       },
     );
 
@@ -262,18 +257,18 @@ test('development notifications encrypt retained key and use scoped EventBridge 
   template.hasResourceProperties('AWS::SNS::Topic', { KmsMasterKeyId: Match.anyValue() });
   const resources = template.toJSON().Resources;
   const rules = Object.values(resources).filter((r: any) => r.Type === 'AWS::Events::Rule') as any[];
-  expect(rules).toHaveLength(3);
-  for (const rule of rules) expect(rule.Properties.Targets[0].RoleArn).toBeDefined();
+  assert.strictEqual((rules).length, 3);
+  for (const rule of rules) assert.notStrictEqual(rule.Properties.Targets[0].RoleArn, undefined);
   const roles = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Role') as any[];
-  expect(roles).toHaveLength(3);
+  assert.strictEqual((roles).length, 3);
   for (const role of roles) {
     const trust = role.Properties.AssumeRolePolicyDocument.Statement[0];
-    expect(trust.Principal.Service).toEqual('events.amazonaws.com');
-    expect(trust.Condition.StringEquals['aws:SourceAccount']).toEqual('111111111111');
-    expect(trust.Condition.ArnEquals['aws:SourceArn']).toBeDefined();
+    assert.deepStrictEqual(trust.Principal.Service, 'events.amazonaws.com');
+    assert.deepStrictEqual(trust.Condition.StringEquals['aws:SourceAccount'], '111111111111');
+    assert.notStrictEqual(trust.Condition.ArnEquals['aws:SourceArn'], undefined);
   }
   const policies = Object.values(resources).filter((r: any) => r.Type === 'AWS::IAM::Policy') as any[];
   for (const policy of policies) for (const statement of policy.Properties.PolicyDocument.Statement) {
-    expect(statement.Resource).not.toEqual('*');
+    assert.notDeepStrictEqual(statement.Resource, '*');
   }
 });

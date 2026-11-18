@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -115,7 +120,7 @@ describe('production-parity infrastructure', () => {
         'AWS::ECS::TaskDefinition',
       );
 
-    expect(Object.keys(taskDefinitions)).toHaveLength(1);
+    assert.strictEqual((Object.keys(taskDefinitions)).length, 1);
 
     const taskDefinition = Object.values(
       taskDefinitions,
@@ -140,14 +145,12 @@ describe('production-parity infrastructure', () => {
       };
     };
 
-    expect(taskDefinition.Properties).toEqual(
-      expect.objectContaining({
+    assert.partialDeepStrictEqual(taskDefinition.Properties, {
         Cpu: '256',
         Memory: '512',
         NetworkMode: 'awsvpc',
         RequiresCompatibilities: ['FARGATE'],
-      }),
-    );
+      });
 
     const container =
       taskDefinition.Properties.ContainerDefinitions.find(
@@ -155,37 +158,31 @@ describe('production-parity infrastructure', () => {
           definition.Name === 'demo-inference-api',
       );
 
-    expect(container).toBeDefined();
+    assert.notStrictEqual(container, undefined);
 
     const imageExpression = JSON.stringify(
       container?.Image,
     );
 
-    expect(imageExpression).toContain(
-      immutableImageTag,
-    );
+    assert.ok((imageExpression).includes(immutableImageTag));
 
-    expect(container?.Environment).toEqual(
-      expect.arrayContaining([
-        {
+    {
+assert.ok((container?.Environment ?? []).some((item: unknown) => isDeepStrictEqual(item, {
           Name: 'APP_VERSION',
           Value: immutableImageTag,
-        },
-        {
+        })));
+assert.ok((container?.Environment ?? []).some((item: unknown) => isDeepStrictEqual(item, {
           Name: 'PORT',
           Value: '3000',
-        },
-      ]),
-    );
+        })));
+};
 
-    expect(container?.PortMappings).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
+    {
+assert.ok((container?.PortMappings ?? []).some((item: unknown) => matchesPartial(item, {
           ContainerPort: 3000,
           Protocol: 'tcp',
-        }),
-      ]),
-    );
+        })));
+};
   });
 
   test('target group checks the health endpoint on port 3000', () => {

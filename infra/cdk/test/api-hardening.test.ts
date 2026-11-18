@@ -1,3 +1,8 @@
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
+import { isDeepStrictEqual } from 'node:util';
+import './test-support';
+import { matchesPartial } from './test-support';
 import * as cdk from 'aws-cdk-lib';
 import {
   Match,
@@ -148,11 +153,7 @@ describe(
             apis,
           );
 
-        expect(
-          serialized,
-        ).not.toContain(
-          '"AllowOrigins":["*"]',
-        );
+        assert.ok(!(serialized).includes('"AllowOrigins":["*"]'));
       },
     );
 
@@ -175,17 +176,11 @@ describe(
               'POST /invoke',
           );
 
-        expect(
-          invokeRoutes,
-        ).toHaveLength(1);
+        assert.strictEqual((invokeRoutes).length, 1);
 
-        expect(
-          invokeRoutes[0]
+        assert.strictEqual(invokeRoutes[0]
             .Properties
-            ?.AuthorizationType,
-        ).toBe(
-          'AWS_IAM',
-        );
+            ?.AuthorizationType, 'AWS_IAM');
       },
     );
 
