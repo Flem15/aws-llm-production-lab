@@ -48,7 +48,7 @@ def evaluate(data, root, now=None, stage="deployment", source_revision=None):
         checks = data['checks']
         if not isinstance(checks, dict) or set(checks) != REQUIRED:
             reasons.append('required review checks are missing or unexpected')
-        required = REQUIRED if stage == "deployment" else {"iam_chain","github_controls","npm_disposition","local_validation","change_approval"}
+        required = REQUIRED if stage == "deployment" else {"iam_chain","github_controls","npm_disposition","local_validation","change_approval","image_provenance"}
         for name in required:
             check = checks.get(name, {})
             if check.get('status') != 'pass':
@@ -56,7 +56,7 @@ def evaluate(data, root, now=None, stage="deployment", source_revision=None):
             refs = check.get('evidence', [])
             if not refs or any(ref not in verified for ref in refs):
                 reasons.append(f'check lacks verified evidence: {name}')
-        if stage == "deployment":
+        if stage in {"publication", "deployment"}:
             provenance = json.loads(verified['release_provenance'])
             revision = data['expected_source_revision']
             if not re.fullmatch(r'[0-9a-f]{40}', str(revision)):

@@ -151,13 +151,13 @@ class GateTests(unittest.TestCase):
     def test_publication_requires_its_own_approval(self):
         self.assertEqual(gate.evaluate(self.data,self.root,self.now,stage='publication',source_revision='a'*40)['decision'],'NO-GO')
 
-    def test_approved_publication_does_not_require_already_published_provenance(self):
+    def test_approved_publication_requires_prepublication_signed_provenance(self):
         self.data['approved_actions']=['publication']
-        del self.data['evidence']['release_provenance']
-        self.data['checks']['image_provenance']['status']='blocked'
         self.data['checks']['alarm_delivery']['status']='blocked'
         self.assertEqual(gate.evaluate(self.data,self.root,self.now,stage='publication',source_revision='a'*40)['decision'],'GO')
         self.assertEqual(self.result(),'NO-GO')
+        del self.data['evidence']['release_provenance']
+        self.assertEqual(gate.evaluate(self.data,self.root,self.now,stage='publication',source_revision='a'*40)['decision'],'NO-GO')
 
     def test_source_approval_cannot_be_reused_for_another_commit(self):
         self.data['approved_actions']=['publication']

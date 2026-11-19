@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "evidence_workflow": ".github/workflows/produce-publication-evidence.yml",
+  "images": [
+    {
+      "name": "api",
+      "repository": "demo-inference-api",
+      "context": "app/demo-inference-api"
+    },
+    {
+      "name": "bot-city",
+      "repository": "bot-city-dev",
+      "context": "app/bot-city"
+    },
+    {
+      "name": "proxy",
+      "repository": "bot-city-proxy-dev",
+      "context": "app/egress-proxy"
+    }
+  ]
+}

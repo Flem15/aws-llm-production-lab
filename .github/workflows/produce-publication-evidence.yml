@@ -1,0 +1,65 @@
+name: Produce Trusted Publication Evidence
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type development-evidence to build and attest without publishing
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  id-token: write
+  attestations: write
+concurrency:
+  group: publication-evidence-main
+  cancel-in-progress: false
+jobs:
+  evidence:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned provenance verifier
+        run: bash .github/scripts/install_verified_gh.sh
+      - name: Verify source, maintainer and live protections
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_POLICY_READ_TOKEN || github.token }}
+          RELEASE_ACTION: evidence
+          RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
+          RELEASE_REGION: ${{ vars.AWS_REGION }}
+          RELEASE_ROLE: ${{ vars.AWS_ROLE_ARN }}
+        run: python3 .github/scripts/release_authorization.py
+      - name: Require reviewed publication records
+        run: test -f docs/publication-review/gate-input.json
+      - name: Build and scan the three exact portable images
+        run: |
+          set -euo pipefail
+          docker buildx create --name publication --driver docker-container
+          python3 .github/scripts/produce_publication_evidence.py build "${GITHUB_SHA}" bundle
+      - name: Sign the image manifest digests
+        uses: actions/attest-build-provenance@9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad
+        with:
+          subject-path: bundle/*/manifest.json
+      - name: Verify provenance and produce the gated bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/produce_publication_evidence.py assemble "${GITHUB_SHA}" bundle
+      - name: Sign the evidence manifest and all transitive file hashes
+        uses: actions/attest-build-provenance@9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad
+        with:
+          subject-path: bundle/gate-input.json
+      - name: Independently verify the completed bundle
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/produce_publication_evidence.py verify "${GITHUB_SHA}" bundle
+      - name: Retain approved release evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: approved-release-evidence
+          path: bundle/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
