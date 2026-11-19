@@ -19,7 +19,7 @@ def validate(context, environment, branches, protection, main):
         errors.append('release requires the canonical repository and main branch')
     if context.get('actor') != 'Flem15' or context.get('actor_id') != '127445894' or context.get('triggering_actor') != 'Flem15':
         errors.append('release must be manually initiated by the selected maintainer')
-    if context.get('action') not in {'publication','deployment'} or context.get('confirmation') != 'development-'+str(context.get('action')):
+    if context.get('action') not in {'publication','deployment','evidence'} or context.get('confirmation') != 'development-'+str(context.get('action')):
         errors.append('explicit development action confirmation required')
     sha = context.get('sha', '')
     if not re.fullmatch('[0-9a-f]{40}', sha) or sha != main.get('sha'):

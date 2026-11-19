@@ -1,0 +1,73 @@
+{
+  "schema": 1,
+  "account": "655469962246",
+  "region": "us-east-2",
+  "collected_at": null,
+  "approved_actions": [
+    "publication"
+  ],
+  "expected_source_revision": null,
+  "expected_images": {},
+  "evidence": {},
+  "checks": {
+    "alarm_delivery": {
+      "status": "pending",
+      "evidence": []
+    },
+    "change_approval": {
+      "status": "pending",
+      "evidence": []
+    },
+    "drift_review": {
+      "status": "pending",
+      "evidence": []
+    },
+    "github_controls": {
+      "status": "pending",
+      "evidence": []
+    },
+    "iam_chain": {
+      "status": "pending",
+      "evidence": []
+    },
+    "image_provenance": {
+      "status": "pending",
+      "evidence": []
+    },
+    "local_validation": {
+      "status": "pending",
+      "evidence": []
+    },
+    "network_validation": {
+      "status": "pending",
+      "evidence": []
+    },
+    "npm_disposition": {
+      "status": "pending",
+      "evidence": []
+    },
+    "recovery_controls": {
+      "status": "pending",
+      "evidence": []
+    },
+    "rollback_plan": {
+      "status": "pending",
+      "evidence": []
+    },
+    "secret_delivery": {
+      "status": "pending",
+      "evidence": []
+    },
+    "template_review": {
+      "status": "pending",
+      "evidence": []
+    }
+  },
+  "findings": [
+    {
+      "id": "PUBLICATION-APPROVAL",
+      "status": "pending",
+      "blocking": true
+    }
+  ]
+}

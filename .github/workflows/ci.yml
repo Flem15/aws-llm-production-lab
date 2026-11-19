@@ -52,6 +52,9 @@ jobs:
         run: python3 ../../.github/scripts/test_release_authorization.py
       - name: Test predeployment evidence gate
         run: python3 ../../.github/scripts/test_predeployment_gate.py
+      - name: Test trusted publication producer and consumer
+        working-directory: .
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
       - name: Build application
         run: npm run build
 

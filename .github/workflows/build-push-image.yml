@@ -1,5 +1,4 @@
-name: Build and Push Immutable Image
-
+name: Build and Push Immutable Images
 on:
   workflow_dispatch:
     inputs:
@@ -8,47 +7,30 @@ on:
         required: true
         type: string
       evidence_run_id:
-        description: Approved review run containing approved-release-evidence
+        description: Reviewed successful producer run on this exact main revision
         required: true
         type: string
-
+      evidence_sha256:
+        description: Reviewed approved-release-evidence archive SHA256
+        required: true
+        type: string
 permissions:
   contents: read
   actions: read
   id-token: write
-  attestations: write
-
 concurrency:
-  group: ecr-image-${{ github.ref }}
+  group: ecr-image-main
   cancel-in-progress: false
-
-env:
-  ECR_REPOSITORY: demo-inference-api
-
 jobs:
-  build-and-push:
-    name: Build and Push to ECR
+  publish:
     runs-on: ubuntu-latest
-
-    environment:
-      name: dev
-
+    environment: dev
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Enforce main branch image publishing
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
-            echo "ERROR: image publishing is restricted to main"
-            exit 1
-          fi
-
-          echo "PASS: image publishing authorized from main"
-
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned provenance verifier
+        run: bash .github/scripts/install_verified_gh.sh
       - name: Verify live GitHub release protections
         env:
           GH_TOKEN: ${{ secrets.RELEASE_POLICY_READ_TOKEN || github.token }}
@@ -56,164 +38,47 @@ jobs:
           RELEASE_CONFIRMATION: ${{ inputs.confirmation }}
           RELEASE_REGION: ${{ vars.AWS_REGION }}
           RELEASE_ROLE: ${{ vars.AWS_ROLE_ARN }}
-          RELEASE_IMAGE_TAG: ${{ inputs.image_tag }}
         run: python3 .github/scripts/release_authorization.py
-
-      - name: Download approved review evidence
-        uses: actions/download-artifact@v4
-        with:
-          name: approved-release-evidence
-          run-id: ${{ inputs.evidence_run_id }}
-          github-token: ${{ github.token }}
-          path: release-review
-
-      - name: Require current predeployment evidence
+      - name: Authenticate and download approved review evidence
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVIDENCE_RUN: ${{ inputs.evidence_run_id }}
+          EVIDENCE_SHA256: ${{ inputs.evidence_sha256 }}
+        run: python3 .github/scripts/publication_evidence.py "${GITHUB_SHA}" "${EVIDENCE_RUN}" "${EVIDENCE_SHA256}" release-review
+      - name: Verify all signed evidence before obtaining AWS credentials
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/produce_publication_evidence.py verify "${GITHUB_SHA}" release-review
+      - name: Recheck publication evidence gate
         run: python3 .github/scripts/predeployment_gate.py release-review/gate-input.json --stage publication --source-revision "${GITHUB_SHA}"
-
+      - name: Install digest-preserving registry transport
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y skopeo
       - name: Configure temporary AWS credentials
-        uses: aws-actions/configure-aws-credentials@v6.1.0
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           role-session-name: llm-parity-image-${{ github.run_id }}
-          aws-region: ${{ vars.AWS_REGION }}
-
-      - name: Verify development AWS account
-        shell: bash
-        env:
-          EXPECTED_AWS_ACCOUNT: '655469962246'
+          aws-region: us-east-2
+          allowed-account-ids: '655469962246'
+          inline-session-policy: >-
+            {"Version":"2012-10-17","Statement":[
+              {"Effect":"Allow","Action":"ecr:GetAuthorizationToken","Resource":"*"},
+              {"Effect":"Allow","Action":["ecr:BatchCheckLayerAvailability","ecr:BatchGetImage","ecr:CompleteLayerUpload","ecr:DescribeImages","ecr:GetDownloadUrlForLayer","ecr:InitiateLayerUpload","ecr:PutImage","ecr:UploadLayerPart"],"Resource":["arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api","arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev","arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev"]}
+            ]}
+      - name: Verify development account
         run: |
           set -euo pipefail
-
-          ACTUAL_AWS_ACCOUNT=$(
-            aws sts get-caller-identity \
-              --query Account \
-              --output text
-          )
-
-          if [ "${ACTUAL_AWS_ACCOUNT}" != "${EXPECTED_AWS_ACCOUNT}" ]; then
-            echo "ERROR: AWS account mismatch; refusing image publication"
-            exit 1
-          fi
-
-          echo "PASS: AWS account matches the approved development account"
-
-      - name: Log in to Amazon ECR
-        id: ecr-login
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Check whether immutable image already exists
-        id: image-check
-        shell: bash
-        env:
-          AWS_REGION: ${{ vars.AWS_REGION }}
-        run: |
-          set -euo pipefail
-
-          ERROR_FILE=$(mktemp)
-          trap 'rm -f "${ERROR_FILE}"' EXIT
-
-          if aws ecr describe-images \
-            --repository-name "${ECR_REPOSITORY}" \
-            --image-ids "imageTag=${GITHUB_SHA}" \
-            --region "${AWS_REGION}" \
-            >/dev/null 2>"${ERROR_FILE}"; then
-
-            echo "exists=true" >> "${GITHUB_OUTPUT}"
-            echo "Image already exists; build will be skipped."
-
-          elif grep -Eq \
-            'An error occurred \(ImageNotFoundException\)' \
-            "${ERROR_FILE}"; then
-
-            echo "exists=false" >> "${GITHUB_OUTPUT}"
-            echo "Image not found; build will proceed."
-
-          else
-            echo "ERROR: ECR image lookup failed."
-            cat "${ERROR_FILE}" >&2
-            exit 1
-          fi
-
-      - name: Build immutable Docker image
-        if: steps.image-check.outputs.exists != 'true'
-        working-directory: app/demo-inference-api
-        env:
-          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-        run: |
-          set -euo pipefail
-
-          docker build \
-            --tag "${ECR_REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}" \
-            .
-
-      - name: Scan the exact new image before publication
-        if: steps.image-check.outputs.exists != 'true'
-        env:
-          IMAGE_URI: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-        run: python3 .github/scripts/scan_release_image.py "${IMAGE_URI}" release-evidence
-
-      - name: Push immutable Docker image
-        if: steps.image-check.outputs.exists != 'true'
-        env:
-          ECR_REGISTRY: ${{ steps.ecr-login.outputs.registry }}
-        run: |
-          set -euo pipefail
-
-          docker push \
-            "${ECR_REGISTRY}/${ECR_REPOSITORY}:${GITHUB_SHA}"
-
-      - name: Verify immutable image
-        id: digest
-        run: |
-          set -euo pipefail
-
-          IMAGE_DIGEST=$(
-            aws ecr describe-images \
-              --repository-name "${ECR_REPOSITORY}" \
-              --image-ids imageTag="${GITHUB_SHA}" \
-              --region "${{ vars.AWS_REGION }}" \
-              --query "imageDetails[0].imageDigest" \
-              --output text
-          )
-
-          if [ -z "${IMAGE_DIGEST}" ] ||
-             [ "${IMAGE_DIGEST}" = "None" ]; then
-            echo "ERROR: immutable image verification failed"
-            exit 1
-          fi
-
-          [[ "${IMAGE_DIGEST}" =~ ^sha256:[0-9a-f]{64}$ ]]
-          echo "digest=${IMAGE_DIGEST}" >> "${GITHUB_OUTPUT}"
-          mkdir -p release-evidence
-          aws ecr describe-images --repository-name "${ECR_REPOSITORY}" \
-            --image-ids imageTag="${GITHUB_SHA}" --region "${{ vars.AWS_REGION }}" \
-            > release-evidence/image-details.json
-
-      - name: Bind freshly built image to registry digest
-        if: steps.image-check.outputs.exists != 'true'
-        env:
-          IMAGE_URI: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          EXPECTED_IMAGE: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}@${{ steps.digest.outputs.digest }}
-        run: |
-          docker image inspect "${IMAGE_URI}" --format '{{json .RepoDigests}}' > release-evidence/local-digests.json
-          python3 -c 'import json,os; assert os.environ["EXPECTED_IMAGE"] in json.load(open("release-evidence/local-digests.json"))'
-
-      - name: Attest only an image built in this run
-        if: steps.image-check.outputs.exists != 'true'
-        uses: actions/attest-build-provenance@9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad
-        with:
-          subject-name: ${{ steps.ecr-login.outputs.registry }}/${{ env.ECR_REPOSITORY }}
-          subject-digest: ${{ steps.digest.outputs.digest }}
-          push-to-registry: false
-
-      - name: Verify new or existing signed build provenance
+          test "$(aws sts get-caller-identity --query Account --output text)" = 655469962246
+      - uses: aws-actions/amazon-ecr-login@7290e214a610b32bc0eef81748948b6d466a8783 # v2
+      - name: Publish only the approved archives and verify registry provenance
         env:
           GH_TOKEN: ${{ github.token }}
-        run: python3 .github/scripts/verify_release.py "${GITHUB_SHA}" release-evidence/image-details.json release-evidence/provenance.json
-
-      - name: Retain signed release verification evidence
-        uses: actions/upload-artifact@v4
+        run: python3 .github/scripts/publish_approved_images.py "${GITHUB_SHA}" release-review published-evidence
+      - name: Retain registry verification evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: image-release-evidence-${{ github.sha }}-${{ github.run_id }}
-          path: release-evidence/
+          path: published-evidence/
           if-no-files-found: error

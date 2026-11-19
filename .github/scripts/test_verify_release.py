@@ -40,9 +40,11 @@ class Tests(unittest.TestCase):
   self.assertIn('"${IMAGE_TAG}" "${IMAGE_DIGEST}"',deploy)
   self.assertIn('"${ACTIVE_IMAGE}" != "${EXPECTED_IMAGE}"',deploy)
   build=(root/'.github/workflows/build-push-image.yml').read_text()
-  block=build[build.index('- name: Attest only'):build.index('- name: Verify new or existing')]
-  self.assertIn("if: steps.image-check.outputs.exists != 'true'",block)
-  self.assertIn('subject-digest: ${{ steps.digest.outputs.digest }}',block)
+  self.assertNotIn('attest-build-provenance',build)
+  self.assertIn('publish_approved_images.py',build)
+  producer=(root/'.github/workflows/produce-publication-evidence.yml').read_text()
+  self.assertIn('subject-path: bundle/*/manifest.json',producer)
+  self.assertNotIn('configure-aws-credentials',producer)
  def test_scan_blocks_high_unknown_secrets_and_incomplete_reports(self):
   sp=importlib.util.spec_from_file_location('scan',Path(__file__).with_name('scan_release_image.py'));m=importlib.util.module_from_spec(sp);sp.loader.exec_module(m)
   self.assertEqual(m.validate({'ArtifactType':'container_image','Metadata':{'OS':{'Family':'alpine'}},'Results':[{'Class':'os-pkgs','Packages':[{'Name':'zlib'}]}]}),{})
