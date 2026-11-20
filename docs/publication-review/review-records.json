@@ -2104,7 +2104,7 @@
         }
       }
     },
-    "disposition": "PENDING explicit acceptance for evidence generation; not an application deployment waiver",
+    "disposition": "Explicitly approved 24-hour acceptance for signed artifact preparation only; no deployment or publication execution waiver.",
     "proposed_scope": "Two moderate CDK tooling findings only. API audit clean. No high/critical acceptance; producer image scans remain mandatory. No dependency changes or downgraded CDK.",
     "dispositions": [
       {
@@ -2125,11 +2125,11 @@
         ],
         "approving_authority": {
           "required": "Flem15, repository owner and project risk owner",
-          "approved_by": null,
-          "approved_at": null,
-          "approval_reference": null
+          "approved_by": "Flem15 (project owner; explicit user approval)",
+          "approved_at": "2026-11-20T01:14:47.076174+00:00",
+          "approval_reference": "User approval reply to call_1708c0842c4a4e18b93a5bfe37d13245: Approve this limited disposition"
         },
-        "status": "pending_explicit_acceptance",
+        "status": "accepted_for_artifact_preparation_only",
         "proposed_expiry": "24 hours from explicit approval, and never beyond supporting evidence freshness",
         "reassessment_triggers": [
           "Any high/critical finding",
@@ -2140,7 +2140,8 @@
         "package": "minimatch",
         "installed_version": "10.2.6",
         "location": "infra/cdk/node_modules/aws-cdk-lib/node_modules/minimatch",
-        "finding_kind": "underlying vulnerable package"
+        "finding_kind": "underlying vulnerable package",
+        "expires_at": "2026-11-21T01:14:47.076174+00:00"
       },
       {
         "advisory": "GHSA-g3hv-75wg-m249",
@@ -2160,11 +2161,11 @@
         ],
         "approving_authority": {
           "required": "Flem15, repository owner and project risk owner",
-          "approved_by": null,
-          "approved_at": null,
-          "approval_reference": null
+          "approved_by": "Flem15 (project owner; explicit user approval)",
+          "approved_at": "2026-11-20T01:14:47.076174+00:00",
+          "approval_reference": "User approval reply to call_1708c0842c4a4e18b93a5bfe37d13245: Approve this limited disposition"
         },
-        "status": "pending_explicit_acceptance",
+        "status": "accepted_for_artifact_preparation_only",
         "proposed_expiry": "24 hours from explicit approval, and never beyond supporting evidence freshness",
         "reassessment_triggers": [
           "Any high/critical finding",
@@ -2175,16 +2176,17 @@
         "package": "aws-cdk-lib",
         "installed_version": "2.275.0",
         "location": "infra/cdk/node_modules/aws-cdk-lib",
-        "finding_kind": "parent dependency exposure to the same advisory; not a second distinct vulnerability"
+        "finding_kind": "parent dependency exposure to the same advisory; not a second distinct vulnerability",
+        "expires_at": "2026-11-21T01:14:47.076174+00:00"
       }
     ]
   },
   "approval": {
-    "status": "pending",
+    "status": "approved_for_evidence_preparation_only",
     "authority": "Flem15",
-    "approved_by": null,
-    "approved_at": null,
-    "approval_reference": null,
+    "approved_by": "Flem15 (project owner; explicit user approval)",
+    "approved_at": "2026-11-20T01:14:47.076174+00:00",
+    "approval_reference": "User approval reply to call_1708c0842c4a4e18b93a5bfe37d13245: Approve this limited disposition",
     "requested_scope": "Approve this three-file input for producing publication-eligible evidence. The gate uses the label publication; neither this record nor a passing gate authorizes ECR writes. The producer dispatch itself remains separately authorized.",
     "explicitly_excluded": [
       "ECR upload or publication",
@@ -2192,9 +2194,12 @@
       "publisher workflow activation",
       "AWS writes",
       "ECS application deployment",
-      "trading"
+      "trading",
+      "PR merge"
     ],
-    "reason_pending": "User requested finalization but explicitly prohibited automatic vulnerability acceptance and reserved producer/publication authorization. No acceptance is inferred."
+    "expires_at": "2026-11-21T01:14:47.076174+00:00",
+    "effective_evidence_deadline": "2026-11-20T13:31:38.811944+00:00",
+    "freshness_note": "Prior collection timestamps preserved. Existing gate freshness expires before this acceptance; refresh factual observations before using stale evidence. No timestamp was advanced to extend validity."
   },
   "credential_configuration": {
     "checked_at": "2026-11-19T14:04:16.312614+00:00",

@@ -3,7 +3,9 @@
   "account": "655469962246",
   "region": "us-east-2",
   "collected_at": "2026-11-19T13:31:38.811944+00:00",
-  "approved_actions": [],
+  "approved_actions": [
+    "publication"
+  ],
   "expected_source_revision": null,
   "expected_images": {},
   "evidence": {
@@ -13,7 +15,7 @@
     },
     "review_records": {
       "path": "review-records.json",
-      "sha256": "95fd49a1a346d89218a38eb9833be7266787d2f8ff4a0b35092ffe2a38ebc89f"
+      "sha256": "7b8f9c31b91f041b4841208d8372db28c054e0ac70f29c959bb34e8b9a1637e1"
     }
   },
   "checks": {
@@ -22,7 +24,7 @@
       "evidence": []
     },
     "change_approval": {
-      "status": "pending",
+      "status": "pass",
       "evidence": [
         "review_records"
       ]
@@ -58,7 +60,7 @@
       "evidence": []
     },
     "npm_disposition": {
-      "status": "pending",
+      "status": "pass",
       "evidence": [
         "review_records"
       ]
@@ -83,13 +85,15 @@
   "findings": [
     {
       "id": "PUBLICATION-APPROVAL",
-      "status": "pending",
-      "blocking": true
+      "status": "resolved",
+      "blocking": true,
+      "resolution": "Explicit owner approval recorded in review_records; execution remains separately unauthorized."
     },
     {
       "id": "NPM-DISPOSITION",
-      "status": "pending",
-      "blocking": true
+      "status": "resolved",
+      "blocking": true,
+      "resolution": "Explicit owner approval recorded in review_records; execution remains separately unauthorized."
     }
   ]
 }
