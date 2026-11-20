@@ -1,7 +1,8 @@
 FROM python:3.12-alpine@sha256:e064671ca452259bab50e8e2c7bd896e39e9a343bb06ca25234adf6fe18d0fc7
 
 # Fixed packages in the supported Alpine release; Python stays on 3.12.
-RUN apk add --no-cache --upgrade zlib=1.4-r0 krb5-libs=1.22.3-r0
+RUN apk add --no-cache --upgrade zlib=1.4-r0 krb5-libs=1.22.3-r0 \
+    libcrypto3=3.5.9-r1 libssl3=3.5.9-r1
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

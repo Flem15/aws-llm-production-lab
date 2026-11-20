@@ -315,7 +315,7 @@ class DurableState:
                      recovery={"acknowledged_revision": expected_revision, "at": timestamp()})
         self._write(state)
 
-    def begin_order(self, contract, qty, side, worker):
+    def begin_order(self, contract, qty, side, worker, context=None):
         self.assert_ready()
         if not worker or isinstance(qty, bool) or not isinstance(qty, int) or qty <= 0:
             raise SafetyHalt("order intent requires worker and positive integer quantity")
@@ -350,6 +350,7 @@ class DurableState:
             "client_order_id": client_id, "worker": worker, "contract": asdict(contract),
             "symbol": contract.symbol, "qty": qty, "side": side, "phase": "INTENT",
             "broker_id": None, "execution": None, "created_at": timestamp(),
+            "decision": deepcopy(context or {}),
         }
         state["pending"].append(client_id)
         self._write(state)
@@ -400,8 +401,28 @@ class DurableState:
         expected = {symbol: qty for symbol, qty in expected.items() if qty}
         if expected != position_totals(positions):
             raise SafetyHalt("position checkpoint does not match recorded executions")
-        state.update(positions=positions, risk=risk, pending=[],
-                     trades=state["trades"] + trades)
+        from .analytics import unique_trades, JournalConflict
+        completed = deepcopy(trades)
+        for trade in completed:
+            if trade.get("reconciliation_status") == "pending_checkpoint":
+                previous = next((t for t in state["trades"] if t.get("trade_id") and t.get("trade_id") == trade.get("trade_id")), None)
+                if previous is None:
+                    exits = trade.get("executions", {}).get("exit", [])
+                    ids = [order["client_order_id"] for order in exits]
+                    if not ids or len(ids) != len(set(ids)) or any(key not in state["pending"] for key in ids):
+                        raise SafetyHalt("trade lacks unique pending exit executions")
+                    records = [state["orders"][key] for key in ids]
+                    if any(record["worker"] != trade["worker"] or record["side"] != "sell" or
+                           record["symbol"] != trade["contract"] for record in records):
+                        raise SafetyHalt("trade does not match its exit executions")
+                    if sum(record["execution"]["filled_qty"] for record in records) != trade["qty"]:
+                        raise SafetyHalt("trade quantity differs from terminal exit fills")
+                trade["reconciliation_status"] = "checkpointed"
+        try:
+            combined = unique_trades(state["trades"] + completed)
+        except (JournalConflict, KeyError, ValueError) as exc:
+            raise SafetyHalt("trade journal conflicts with committed history") from exc
+        state.update(positions=positions, risk=risk, pending=[], trades=combined)
         self._write(state)
 
     def finish_session(self, broker):

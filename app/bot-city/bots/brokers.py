@@ -186,7 +186,8 @@ class AlpacaBroker:
         if getattr(self, "journal", None) is None:
             raise SafetyHalt("durable reconciliation is required before broker submission")
         self.journal.assert_ready()
-        client_order_id = self.journal.begin_order(c, qty, side, self.worker_name)
+        context = getattr(self, "decision_context", None)
+        client_order_id = self.journal.begin_order(c, qty, side, self.worker_name, context=context) if context else self.journal.begin_order(c, qty, side, self.worker_name)
         try:
             return self._execute_order(c, qty, side, client_order_id)
         except Exception as exc:
@@ -273,14 +274,16 @@ class AlpacaBroker:
         remaining = qty
         total_value = 0.0
         total_filled = 0
+        total_fees = 0.0
         for _ in range(3):
             price, filled, fees = self._market_once(c, remaining, OrderSide.SELL)
+            total_fees += fees
             total_value += price * filled
             total_filled += filled
             remaining -= filled
             if remaining <= 0:
                 self.last_filled_qty = None
-                return total_value / total_filled, fees
+                return total_value / total_filled, total_fees
             log.warning("partial Alpaca exit %s: %d contracts remain", c.symbol, remaining)
         raise OrderStateUnknown(
             f"could not fully reconcile exit for {c.symbol}; {remaining} contracts may remain"

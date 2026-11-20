@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Bot City · Trade Intelligence</title><link rel="stylesheet" href="analytics.css"><script src="analytics.js" defer></script></head>
+<body><main><header><div><p class="eyebrow">BOT CITY / TRADE INTELLIGENCE</p><h1>Understand every outcome.</h1><p>Private, read-only performance review. No trading controls.</p></div><a href="index.html">Runtime overview →</a></header>
+<section class="notice" id="status" role="status">Waiting for a local ledger report. No performance data loaded.</section>
+<div class="filters"><label>Strategy <select id="strategy"><option value="">All strategies</option></select></label><label>From <input type="date" id="from"></label><label>Through <input type="date" id="through"></label><button id="reset">Reset</button></div>
+<section class="metrics" id="metrics" aria-label="Performance metrics"></section>
+<section class="panel"><h2>Closed-trade P&amp;L path</h2><p>Each step is one closed trade, net of recorded fees. This does not show intratrade or unrealized losses.</p><svg id="curve" viewBox="0 0 900 200" role="img" aria-label="Cumulative realized profit and loss"></svg></section>
+<section class="panel"><h2>Strategy comparison</h2><div class="scroll"><table><thead><tr><th>Strategy</th><th>Trades</th><th>Net P&amp;L</th><th>Win rate</th><th>Expectancy</th><th>Profit factor</th><th>Drawdown</th></tr></thead><tbody id="comparison"></tbody></table></div></section>
+<section class="panel"><h2>Daily review</h2><div class="scroll"><table><thead><tr><th>Session date</th><th>Trades</th><th>Net P&amp;L</th><th>Win rate</th><th>Expectancy</th><th>Profit factor</th><th>Drawdown</th></tr></thead><tbody id="daily"></tbody></table></div></section>
+<section class="panel"><h2>Trade journal</h2><p>Open a record for its decision, risk controls and execution evidence.</p><div id="journal"></div><button id="more" hidden>Show 50 more trades</button></section>
+<footer id="source">No report loaded. Historical performance does not establish future returns.</footer></main></body></html>
