@@ -1,5 +1,8 @@
 FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS build
 
+# Same Alpine/OpenSSL release; apply the security package revision in the builder too.
+RUN apk add --no-cache --upgrade libcrypto3=3.5.9-r1 libssl3=3.5.9-r1
+
 WORKDIR /app
 
 COPY package.json package-lock.json ./
@@ -15,8 +18,8 @@ RUN npm prune --omit=dev
 
 FROM node:24-alpine@sha256:116b800c3754b440ee0aa3ed2f20f5bf3d99a554bfd9adeea09ea8017f6e85f5 AS runtime
 
-# Fixed version for CVE-2026-4738, from the same Alpine release repository.
-RUN apk add --no-cache --upgrade zlib=1.4-r0
+# Pin zlib and OpenSSL security revisions from the same Alpine release.
+RUN apk add --no-cache --upgrade zlib=1.4-r0 libcrypto3=3.5.9-r1 libssl3=3.5.9-r1
 
 WORKDIR /app
 
