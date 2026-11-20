@@ -1,11 +1,11 @@
 {
   "account": "655469962246",
   "region": "us-east-2",
-  "checked_at": "2026-11-19T13:31:38.811944+00:00",
-  "timestamp_basis": "Prior read-only review artifact acquisition time; no new AWS inspection this task",
+  "checked_at": "2026-11-20T16:53:16.115121+00:00",
+  "timestamp_basis": "Minimum acquisition timestamp of attached fresh GitHub inspection and release-role IAM inspection/simulations",
   "release_chain_removed": true,
   "github_authorization_active": true,
-  "scope": "Previously verified reviewed release-role path only; not a global AWS privilege assertion. GitHub independently rechecked this task.",
+  "scope": "Reviewed GitHub release-role chain only; no global IAM safety assertion. Runtime startup and alarm delivery are not established by this publication-stage review.",
   "supporting_file": "review-records.json",
   "alarm_deliveries": [],
   "required_alarm_arns": []

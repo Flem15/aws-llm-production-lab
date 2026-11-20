@@ -2,7 +2,7 @@
   "schema": 1,
   "account": "655469962246",
   "region": "us-east-2",
-  "collected_at": "2026-11-19T13:31:38.811944+00:00",
+  "collected_at": "2026-11-20T16:53:16.115121+00:00",
   "approved_actions": [
     "publication"
   ],
@@ -11,11 +11,11 @@
   "evidence": {
     "cloud_controls": {
       "path": "cloud-controls.json",
-      "sha256": "53ba4a837c0d50636f73c42bea52c433bdac5560505af7d266a097f13a2e3ca0"
+      "sha256": "fe3a5d310546626f37f24f680d072fd1df17df64fac877c87d6ccef0e2a05fd0"
     },
     "review_records": {
       "path": "review-records.json",
-      "sha256": "7b8f9c31b91f041b4841208d8372db28c054e0ac70f29c959bb34e8b9a1637e1"
+      "sha256": "ee7af28c8885b5f6a39e598a1359e29535e4e4ae49c1baa5dfa3b59da7620e64"
     }
   },
   "checks": {
