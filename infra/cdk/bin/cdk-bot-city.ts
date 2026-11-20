@@ -12,7 +12,13 @@ if (app.node.tryGetContext('botCityProxyAddress') || app.node.tryGetContext('bot
 }
 new BotCityStack(app, 'BotCityDevStack', {
   env: { account: '655469962246', region: 'us-east-2' },
-  synthesizer: new cdk.DefaultStackSynthesizer({ qualifier: 'prod01' }),
+  // Never silently use the administrator-capable bootstrap execution role.
+  // This dedicated role must be separately reviewed and provisioned before activation.
+  synthesizer: new cdk.DefaultStackSynthesizer({ qualifier: 'prod01',
+    cloudFormationExecutionRole: 'arn:aws:iam::655469962246:role/llm-parity-bot-city-cfn-exec',
+    deployRoleArn: 'arn:aws:iam::655469962246:role/llm-parity-bot-city-infra-deploy',
+    fileAssetPublishingRoleArn: 'arn:aws:iam::655469962246:role/llm-parity-bot-city-infra-deploy',
+  }),
   imageDigest: app.node.tryGetContext('botCityImageDigest') || '',
   secretArn: app.node.tryGetContext('botCitySecretArn') || '',
   paperAccountId: app.node.tryGetContext('botCityPaperAccountId') || '',
