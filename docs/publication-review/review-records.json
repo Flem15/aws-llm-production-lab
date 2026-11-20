@@ -1,0 +1,2225 @@
+{
+  "schema": 1,
+  "reviewed_base_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+  "github_checked_at": "2026-11-19T13:41:46.834482+00:00",
+  "github": {
+    "protection": {
+      "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/branches/main/protection",
+      "required_status_checks": {
+        "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/branches/main/protection/required_status_checks",
+        "strict": true,
+        "contexts": [
+          "Application and Docker",
+          "CDK Build and Synthesis",
+          "Restricted Egress Security and Docker",
+          "Bot City Safety and Docker",
+          "Release Image Security"
+        ],
+        "contexts_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/branches/main/protection/required_status_checks/contexts",
+        "checks": [
+          {
+            "context": "Application and Docker",
+            "app_id": 15368
+          },
+          {
+            "context": "CDK Build and Synthesis",
+            "app_id": 15368
+          },
+          {
+            "context": "Restricted Egress Security and Docker",
+            "app_id": 15368
+          },
+          {
+            "context": "Bot City Safety and Docker",
+            "app_id": 15368
+          },
+          {
+            "context": "Release Image Security",
+            "app_id": 15368
+          }
+        ]
+      },
+      "required_pull_request_reviews": {
+        "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": false,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 0
+      },
+      "required_signatures": {
+        "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/branches/main/protection/required_signatures",
+        "enabled": false
+      },
+      "enforce_admins": {
+        "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/branches/main/protection/enforce_admins",
+        "enabled": true
+      },
+      "required_linear_history": {
+        "enabled": false
+      },
+      "allow_force_pushes": {
+        "enabled": false
+      },
+      "allow_deletions": {
+        "enabled": false
+      },
+      "block_creations": {
+        "enabled": false
+      },
+      "required_conversation_resolution": {
+        "enabled": true
+      },
+      "lock_branch": {
+        "enabled": false
+      },
+      "allow_fork_syncing": {
+        "enabled": false
+      }
+    },
+    "environment": {
+      "id": 18376760620,
+      "node_id": "EN_kwDOR5ytgs8AAAAER1cdLA",
+      "name": "dev",
+      "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/environments/dev",
+      "html_url": "https://github.com/Flem15/aws-llm-production-lab/deployments/activity_log?environments_filter=dev",
+      "created_at": "2026-07-18T22:36:12Z",
+      "updated_at": "2026-11-18T13:34:31Z",
+      "can_admins_bypass": false,
+      "protection_rules": [
+        {
+          "id": 60315052,
+          "node_id": "GA_kwDOR5ytgs4DmFWs",
+          "type": "branch_policy"
+        }
+      ],
+      "deployment_branch_policy": {
+        "protected_branches": false,
+        "custom_branch_policies": true
+      }
+    },
+    "environment-branches": {
+      "total_count": 1,
+      "branch_policies": [
+        {
+          "id": 55017385,
+          "node_id": "MDE2OkdhdGVCcmFuY2hQb2xpY3k1NTAxNzM4NQ==",
+          "name": "main",
+          "type": "branch"
+        }
+      ]
+    },
+    "producer": {
+      "id": 423868189,
+      "node_id": "W_kwDOR5ytgs4ZQ7cd",
+      "name": "Produce Trusted Publication Evidence",
+      "path": ".github/workflows/produce-publication-evidence.yml",
+      "state": "active",
+      "created_at": "2026-11-19T06:25:19.000-07:00",
+      "updated_at": "2026-11-19T06:25:19.000-07:00",
+      "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/actions/workflows/423868189",
+      "html_url": "https://github.com/Flem15/aws-llm-production-lab/blob/main/.github/workflows/produce-publication-evidence.yml",
+      "badge_url": "https://github.com/Flem15/aws-llm-production-lab/workflows/Produce%20Trusted%20Publication%20Evidence/badge.svg"
+    },
+    "checks": {
+      "total_count": 11,
+      "check_runs": [
+        {
+          "id": 135591950817,
+          "name": "Analyze (javascript-typescript)",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkej54Q",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "4a792c94-6925-5d31-b541-baa20271e546",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591950817",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533276121/job/135591950817",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533276121/job/135591950817",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:23Z",
+          "completed_at": "2026-11-19T13:26:46Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591950817/annotations"
+          },
+          "check_suite": {
+            "id": 120545713015
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591950538,
+          "name": "Analyze (actions)",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkej4yg",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "9f56e730-36c6-54ef-aa33-0ac5061809b0",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591950538",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533276121/job/135591950538",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533276121/job/135591950538",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:23Z",
+          "completed_at": "2026-11-19T13:26:13Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591950538/annotations"
+          },
+          "check_suite": {
+            "id": 120545713015
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591950163,
+          "name": "Analyze (python)",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkej3Uw",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "ac23b465-422a-545d-9b38-8e640efaaa25",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591950163",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533276121/job/135591950163",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533276121/job/135591950163",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:23Z",
+          "completed_at": "2026-11-19T13:26:34Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591950163/annotations"
+          },
+          "check_suite": {
+            "id": 120545713015
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591938556,
+          "name": "Container and Secret Scanning",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejJ_A",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "d3c68844-d1e3-552a-b800-b790a4ccfd02",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591938556",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275847/job/135591938556",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275847/job/135591938556",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:21Z",
+          "completed_at": "2026-11-19T13:26:01Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591938556/annotations"
+          },
+          "check_suite": {
+            "id": 120545712255
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591938276,
+          "name": "Release Image Security",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejI5A",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "e0c6b4ef-205f-58d8-92c8-bf66117555c3",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591938276",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591938276",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591938276",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:22Z",
+          "completed_at": "2026-11-19T13:27:01Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591938276/annotations"
+          },
+          "check_suite": {
+            "id": 120545712249
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591937799,
+          "name": "CDK Build and Synthesis",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejHBw",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "cd46d388-6fd6-547b-895a-931bca4aad86",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937799",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937799",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937799",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:22Z",
+          "completed_at": "2026-11-19T13:26:39Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937799/annotations"
+          },
+          "check_suite": {
+            "id": 120545712249
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591937798,
+          "name": "Restricted Egress Security and Docker",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejHBg",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "31a7cc18-ed56-56a2-988a-672368502972",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937798",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937798",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937798",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:22Z",
+          "completed_at": "2026-11-19T13:25:47Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937798/annotations"
+          },
+          "check_suite": {
+            "id": 120545712249
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591937650,
+          "name": "Dependency Audit",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejGcg",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "44737de3-72c8-5893-87ec-f5eead7363cc",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937650",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275847/job/135591937650",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275847/job/135591937650",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:22Z",
+          "completed_at": "2026-11-19T13:25:38Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937650/annotations"
+          },
+          "check_suite": {
+            "id": 120545712255
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591937613,
+          "name": "Bot City Safety and Docker",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejGTQ",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "7923dac8-56ec-5492-b764-5117fb52a90f",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937613",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937613",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937613",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:21Z",
+          "completed_at": "2026-11-19T13:26:30Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937613/annotations"
+          },
+          "check_suite": {
+            "id": 120545712249
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591937227,
+          "name": "Infrastructure Security Tests",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejEyw",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "8a42dc11-aec2-541e-82b7-9a52ada909a8",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937227",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275847/job/135591937227",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275847/job/135591937227",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:22Z",
+          "completed_at": "2026-11-19T13:25:55Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937227/annotations"
+          },
+          "check_suite": {
+            "id": 120545712255
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        },
+        {
+          "id": 135591937130,
+          "name": "Application and Docker",
+          "node_id": "CR_kwDOR5ytgs8AAAAfkejEag",
+          "head_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+          "external_id": "5c6afbfc-d45f-52a7-8512-22f177606188",
+          "url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937130",
+          "html_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937130",
+          "details_url": "https://github.com/Flem15/aws-llm-production-lab/actions/runs/44533275849/job/135591937130",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-11-19T13:25:22Z",
+          "completed_at": "2026-11-19T13:25:48Z",
+          "output": {
+            "title": null,
+            "summary": null,
+            "text": null,
+            "annotations_count": 0,
+            "annotations_url": "https://api.github.com/repos/Flem15/aws-llm-production-lab/check-runs/135591937130/annotations"
+          },
+          "check_suite": {
+            "id": 120545712249
+          },
+          "app": {
+            "id": 15368,
+            "client_id": "Iv1.05c79e9ad1f6bdfa",
+            "slug": "github-actions",
+            "node_id": "MDM6QXBwMTUzNjg=",
+            "owner": {
+              "login": "github",
+              "id": 9919,
+              "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+              "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/github",
+              "html_url": "https://github.com/github",
+              "followers_url": "https://api.github.com/users/github/followers",
+              "following_url": "https://api.github.com/users/github/following{/other_user}",
+              "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+              "organizations_url": "https://api.github.com/users/github/orgs",
+              "repos_url": "https://api.github.com/users/github/repos",
+              "events_url": "https://api.github.com/users/github/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/github/received_events",
+              "type": "Organization",
+              "user_view_type": "public",
+              "site_admin": false
+            },
+            "name": "GitHub Actions",
+            "description": "Automate your workflow from idea to production",
+            "external_url": "https://help.github.com/en/actions",
+            "html_url": "https://github.com/apps/github-actions",
+            "created_at": "2018-07-30T09:30:17Z",
+            "updated_at": "2026-06-18T16:17:48Z",
+            "permissions": {
+              "actions": "write",
+              "administration": "read",
+              "artifact_metadata": "write",
+              "attestations": "write",
+              "checks": "write",
+              "code_quality": "write",
+              "contents": "write",
+              "copilot_requests": "write",
+              "deployments": "write",
+              "discussions": "write",
+              "drives": "write",
+              "issues": "write",
+              "merge_queues": "write",
+              "metadata": "read",
+              "models": "read",
+              "packages": "write",
+              "pages": "write",
+              "pull_requests": "write",
+              "repository_hooks": "write",
+              "repository_projects": "write",
+              "security_events": "write",
+              "statuses": "write",
+              "vulnerability_alerts": "read"
+            },
+            "events": [
+              "branch_protection_rule",
+              "check_run",
+              "check_suite",
+              "create",
+              "delete",
+              "deployment",
+              "deployment_status",
+              "discussion",
+              "discussion_comment",
+              "fork",
+              "gollum",
+              "issues",
+              "issue_comment",
+              "label",
+              "merge_group",
+              "milestone",
+              "page_build",
+              "public",
+              "pull_request",
+              "pull_request_review",
+              "pull_request_review_comment",
+              "push",
+              "registry_package",
+              "release",
+              "repository",
+              "repository_dispatch",
+              "status",
+              "watch",
+              "workflow_dispatch",
+              "workflow_run"
+            ]
+          },
+          "pull_requests": []
+        }
+      ]
+    }
+  },
+  "iam_existing_review": {
+    "identity": {
+      "UserId": "AIDAZRHIN4QDKUZNGMPT6",
+      "Account": "655469962246",
+      "Arn": "arn:aws:iam::655469962246:user/K21_PowerUser"
+    },
+    "role": {
+      "Role": {
+        "Path": "/",
+        "RoleName": "llm-parity-actions-ecr-push",
+        "RoleId": "AROAZRHIN4QDIJZMWZ33O",
+        "Arn": "arn:aws:iam::655469962246:role/llm-parity-actions-ecr-push",
+        "CreateDate": "2026-07-18T22:29:24+00:00",
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Federated": "arn:aws:iam::655469962246:oidc-provider/token.actions.githubusercontent.com"
+              },
+              "Action": "sts:AssumeRoleWithWebIdentity",
+              "Condition": {
+                "StringEquals": {
+                  "token.actions.githubusercontent.com:sub": "repo:Flem15/aws-llm-production-lab:environment:dev",
+                  "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+                }
+              }
+            }
+          ]
+        },
+        "Description": "Allows the approved GitHub Actions dev environment to push immutable images to ECR.",
+        "MaxSessionDuration": 3600,
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          },
+          {
+            "Key": "Project",
+            "Value": "aws-llm-production-parity-lab"
+          },
+          {
+            "Key": "Repository",
+            "Value": "Flem15/aws-llm-production-lab"
+          },
+          {
+            "Key": "ManagedBy",
+            "Value": "AWS-CDK"
+          },
+          {
+            "Key": "CostCenter",
+            "Value": "llm-parity-lab"
+          }
+        ],
+        "RoleLastUsed": {
+          "LastUsedDate": "2026-08-17T02:37:51+00:00",
+          "Region": "us-east-2"
+        }
+      }
+    },
+    "original-policy": {
+      "RoleName": "llm-parity-actions-ecr-push",
+      "PolicyName": "GitHubActionsEcrRoleDefaultPolicyF0E45254",
+      "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "ecr:BatchCheckLayerAvailability",
+              "ecr:BatchGetImage",
+              "ecr:CompleteLayerUpload",
+              "ecr:DescribeImages",
+              "ecr:GetDownloadUrlForLayer",
+              "ecr:InitiateLayerUpload",
+              "ecr:PutImage",
+              "ecr:UploadLayerPart"
+            ],
+            "Resource": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "Effect": "Allow"
+          },
+          {
+            "Action": "ecr:GetAuthorizationToken",
+            "Resource": "*",
+            "Effect": "Allow"
+          },
+          {
+            "Action": [
+              "ecs:DescribeServices",
+              "ecs:DescribeTaskDefinition",
+              "ecs:DescribeTasks",
+              "ecs:ListTasks"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "InspectAndUpdateEcsRelease"
+          },
+          {
+            "Action": [
+              "apigateway:GET",
+              "elasticloadbalancing:DescribeLoadBalancers",
+              "elasticloadbalancing:DescribeTargetGroups",
+              "elasticloadbalancing:DescribeTargetHealth"
+            ],
+            "Resource": "*",
+            "Effect": "Allow",
+            "Sid": "InspectReleaseHealth"
+          },
+          {
+            "Action": "execute-api:Invoke",
+            "Resource": "arn:aws:execute-api:us-east-2:655469962246:rkysrongg2/$default/POST/invoke",
+            "Effect": "Allow",
+            "Sid": "InvokeProtectedInferenceRoute"
+          },
+          {
+            "Sid": "DenyInfrastructureEscalation",
+            "Effect": "Deny",
+            "Action": [
+              "sts:AssumeRole",
+              "cloudformation:*"
+            ],
+            "Resource": "*"
+          },
+          {
+            "Sid": "UpdateOnlyApprovedInferenceService",
+            "Effect": "Allow",
+            "Action": "ecs:UpdateService",
+            "Resource": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service"
+          }
+        ]
+      }
+    },
+    "publication-policy": {
+      "RoleName": "llm-parity-actions-ecr-push",
+      "PolicyName": "llm-parity-bot-city-publication",
+      "PolicyDocument": {
+        "Version": "2012-10-17",
+        "Statement": [
+          {
+            "Action": [
+              "ecr:BatchCheckLayerAvailability",
+              "ecr:BatchGetImage",
+              "ecr:CompleteLayerUpload",
+              "ecr:DescribeImages",
+              "ecr:GetDownloadUrlForLayer",
+              "ecr:InitiateLayerUpload",
+              "ecr:PutImage",
+              "ecr:UploadLayerPart"
+            ],
+            "Resource": [
+              "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+              "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev"
+            ],
+            "Effect": "Allow"
+          }
+        ]
+      }
+    },
+    "inline": {
+      "PolicyNames": [
+        "GitHubActionsEcrRoleDefaultPolicyF0E45254",
+        "llm-parity-bot-city-publication"
+      ]
+    },
+    "attached": {
+      "AttachedPolicies": []
+    }
+  },
+  "iam_simulation_from_activation": {
+    "EvaluationResults": [
+      {
+        "EvalActionName": "ecr:PutImage",
+        "EvalResourceName": "arn:aws:ecr:${Region}:${Account}:repository/${RepositoryName}",
+        "EvalDecision": "implicitDeny",
+        "MatchedStatements": [
+          {
+            "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+            "SourcePolicyType": "IAM Policy",
+            "StartPosition": {
+              "Line": 1,
+              "Column": 41
+            },
+            "EndPosition": {
+              "Line": 1,
+              "Column": 353
+            }
+          },
+          {
+            "SourcePolicyId": "role_llm-parity-actions-ecr-push_llm-parity-bot-city-publication",
+            "SourcePolicyType": "IAM Policy",
+            "StartPosition": {
+              "Line": 1,
+              "Column": 38
+            },
+            "EndPosition": {
+              "Line": 1,
+              "Column": 401
+            }
+          }
+        ],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "role_llm-parity-actions-ecr-push_llm-parity-bot-city-publication",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 401
+                }
+              }
+            ]
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "role_llm-parity-actions-ecr-push_llm-parity-bot-city-publication",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 38
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 401
+                }
+              }
+            ]
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 41
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 353
+                }
+              }
+            ]
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "EvalActionName": "ecr:DeleteRepository",
+        "EvalResourceName": "arn:aws:ecr:${Region}:${Account}:repository/${RepositoryName}",
+        "EvalDecision": "implicitDeny",
+        "MatchedStatements": [],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "EvalActionName": "ecs:UpdateService",
+        "EvalResourceName": "arn:aws:ecs:${Region}:${Account}:${ResourceType}/${ResourcePath}",
+        "EvalDecision": "allowed",
+        "MatchedStatements": [
+          {
+            "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+            "SourcePolicyType": "IAM Policy",
+            "StartPosition": {
+              "Line": 1,
+              "Column": 1153
+            },
+            "EndPosition": {
+              "Line": 1,
+              "Column": 1361
+            }
+          }
+        ],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "allowed",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 1153
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 1361
+                }
+              }
+            ]
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "EvalActionName": "ecs:RegisterTaskDefinition",
+        "EvalResourceName": "arn:aws:ecs:${Region}:${Account}:${ResourceType}/${ResourcePath}",
+        "EvalDecision": "implicitDeny",
+        "MatchedStatements": [],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "EvalActionName": "iam:PassRole",
+        "EvalResourceName": "arn:aws:iam::${Account}:${ResourceType}/${ResourceName}",
+        "EvalDecision": "implicitDeny",
+        "MatchedStatements": [],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "EvalActionName": "sts:AssumeRole",
+        "EvalResourceName": "arn:aws:iam::${Account}:${RelativeId}",
+        "EvalDecision": "explicitDeny",
+        "MatchedStatements": [
+          {
+            "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+            "SourcePolicyType": "IAM Policy",
+            "StartPosition": {
+              "Line": 1,
+              "Column": 1027
+            },
+            "EndPosition": {
+              "Line": 1,
+              "Column": 1153
+            }
+          }
+        ],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "explicitDeny",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 1027
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 1153
+                }
+              }
+            ]
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "implicitDeny"
+          }
+        ]
+      },
+      {
+        "EvalActionName": "cloudformation:CreateStack",
+        "EvalResourceName": "arn:aws:cloudformation:${Region}:${Account}:${ResourceType}/${Id}",
+        "EvalDecision": "explicitDeny",
+        "MatchedStatements": [
+          {
+            "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+            "SourcePolicyType": "IAM Policy",
+            "StartPosition": {
+              "Line": 1,
+              "Column": 1027
+            },
+            "EndPosition": {
+              "Line": 1,
+              "Column": 1153
+            }
+          }
+        ],
+        "MissingContextValues": [],
+        "EvalDecisionDetails": {},
+        "ResourceSpecificResults": [
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/bot-city-proxy-dev",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/demo-inference-api",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecr:us-east-2:655469962246:repository/unrelated",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:service/llm-parity-cluster/llm-parity-demo-inference-service",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:iam::655469962246:role/cdk-prod01-cfn-exec-role-655469962246-us-east-2",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:ecs:us-east-2:655469962246:task-definition/publication-review:1",
+            "EvalResourceDecision": "implicitDeny"
+          },
+          {
+            "EvalResourceName": "arn:aws:cloudformation:us-east-2:655469962246:stack/LlmParityDevEcrStack/685a6cb0-3066-11f1-8aef-0640fa81d41b",
+            "EvalResourceDecision": "explicitDeny",
+            "MatchedStatements": [
+              {
+                "SourcePolicyId": "role_llm-parity-actions-ecr-push_GitHubActionsEcrRoleDefaultPolicyF0E45254",
+                "SourcePolicyType": "IAM Policy",
+                "StartPosition": {
+                  "Line": 1,
+                  "Column": 1027
+                },
+                "EndPosition": {
+                  "Line": 1,
+                  "Column": 1153
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "npm": {
+    "cdk": {
+      "auditReportVersion": 2,
+      "vulnerabilities": {
+        "aws-cdk-lib": {
+          "name": "aws-cdk-lib",
+          "severity": "moderate",
+          "isDirect": true,
+          "via": [
+            "minimatch"
+          ],
+          "effects": [],
+          "range": ">=2.240.0",
+          "nodes": [
+            "node_modules/aws-cdk-lib"
+          ],
+          "fixAvailable": {
+            "name": "aws-cdk-lib",
+            "version": "2.239.0",
+            "isSemVerMajor": true
+          }
+        },
+        "minimatch": {
+          "name": "minimatch",
+          "severity": "moderate",
+          "isDirect": false,
+          "via": [
+            {
+              "source": 1244623,
+              "name": "minimatch",
+              "dependency": "minimatch",
+              "title": "minimatch has potential denial of service via globparts amplification",
+              "url": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+              "severity": "moderate",
+              "cwe": [
+                "CWE-405"
+              ],
+              "cvss": {
+                "score": 0,
+                "vectorString": null
+              },
+              "range": ">=7.0.0 <11.0.1"
+            }
+          ],
+          "effects": [
+            "aws-cdk-lib"
+          ],
+          "range": "7.0.0 - 11.0.0",
+          "nodes": [
+            "node_modules/aws-cdk-lib/node_modules/minimatch"
+          ],
+          "fixAvailable": {
+            "name": "aws-cdk-lib",
+            "version": "2.239.0",
+            "isSemVerMajor": true
+          }
+        }
+      },
+      "metadata": {
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 2,
+          "high": 0,
+          "critical": 0,
+          "total": 2
+        },
+        "dependencies": {
+          "prod": 27,
+          "dev": 21,
+          "optional": 0,
+          "peer": 0,
+          "peerOptional": 0,
+          "total": 47
+        }
+      }
+    },
+    "api": {
+      "auditReportVersion": 2,
+      "vulnerabilities": {},
+      "metadata": {
+        "vulnerabilities": {
+          "info": 0,
+          "low": 0,
+          "moderate": 0,
+          "high": 0,
+          "critical": 0,
+          "total": 0
+        },
+        "dependencies": {
+          "prod": 73,
+          "dev": 29,
+          "optional": 0,
+          "peer": 0,
+          "peerOptional": 0,
+          "total": 101
+        }
+      }
+    },
+    "disposition": "Explicitly approved 24-hour acceptance for signed artifact preparation only; no deployment or publication execution waiver.",
+    "proposed_scope": "Two moderate CDK tooling findings only. API audit clean. No high/critical acceptance; producer image scans remain mandatory. No dependency changes or downgraded CDK.",
+    "dispositions": [
+      {
+        "advisory": "GHSA-g3hv-75wg-m249",
+        "cve": "CVE-2026-118764",
+        "reference": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+        "severity": "moderate",
+        "risk": "Attacker-controlled glob patterns can cause excessive CPU and memory consumption during minimatch preprocessing (optimizationLevel >= 2).",
+        "remediation_status": "Unfixed in current CDK lockfile; upstream minimatch 11.0.1 is patched. CDK bundles minimatch 10.2.6. npm proposes CDK 2.239.0 downgrade, not an approved compatible remediation. No dependency change made.",
+        "proposed_disposition": "Time-limited acceptance solely for signed artifact preparation; no application deployment or image vulnerability waiver.",
+        "justification": "Producer builds only app/demo-inference-api, app/bot-city and app/egress-proxy contexts, not infra/cdk. CDK package is outside all three contexts. Inference lockfile audit is clean. This narrows producer exposure; CI/CDK tooling exposure remains and is not declared fixed.",
+        "compensating_controls": [
+          "Protected reviewed source and required CI",
+          "Manual maintainer-only producer context",
+          "No AWS credential acquisition in producer",
+          "Mandatory fresh image vulnerability and secret scans",
+          "Separate publisher and deployment authorizations"
+        ],
+        "approving_authority": {
+          "required": "Flem15, repository owner and project risk owner",
+          "approved_by": "Flem15 (project owner; explicit user approval)",
+          "approved_at": "2026-11-20T01:14:47.076174+00:00",
+          "approval_reference": "User approval reply to call_1708c0842c4a4e18b93a5bfe37d13245: Approve this limited disposition"
+        },
+        "status": "accepted_for_artifact_preparation_only",
+        "proposed_expiry": "24 hours from explicit approval, and never beyond supporting evidence freshness",
+        "reassessment_triggers": [
+          "Any high/critical finding",
+          "Source changes that introduce CDK into image build contexts",
+          "New dependency audit or remediation availability",
+          "Before any application deployment"
+        ],
+        "package": "minimatch",
+        "installed_version": "10.2.6",
+        "location": "infra/cdk/node_modules/aws-cdk-lib/node_modules/minimatch",
+        "finding_kind": "underlying vulnerable package",
+        "expires_at": "2026-11-21T01:14:47.076174+00:00"
+      },
+      {
+        "advisory": "GHSA-g3hv-75wg-m249",
+        "cve": "CVE-2026-118764",
+        "reference": "https://github.com/advisories/GHSA-g3hv-75wg-m249",
+        "severity": "moderate",
+        "risk": "Attacker-controlled glob patterns can cause excessive CPU and memory consumption during minimatch preprocessing (optimizationLevel >= 2).",
+        "remediation_status": "Unfixed in current CDK lockfile; upstream minimatch 11.0.1 is patched. CDK bundles minimatch 10.2.6. npm proposes CDK 2.239.0 downgrade, not an approved compatible remediation. No dependency change made.",
+        "proposed_disposition": "Time-limited acceptance solely for signed artifact preparation; no application deployment or image vulnerability waiver.",
+        "justification": "Producer builds only app/demo-inference-api, app/bot-city and app/egress-proxy contexts, not infra/cdk. CDK package is outside all three contexts. Inference lockfile audit is clean. This narrows producer exposure; CI/CDK tooling exposure remains and is not declared fixed.",
+        "compensating_controls": [
+          "Protected reviewed source and required CI",
+          "Manual maintainer-only producer context",
+          "No AWS credential acquisition in producer",
+          "Mandatory fresh image vulnerability and secret scans",
+          "Separate publisher and deployment authorizations"
+        ],
+        "approving_authority": {
+          "required": "Flem15, repository owner and project risk owner",
+          "approved_by": "Flem15 (project owner; explicit user approval)",
+          "approved_at": "2026-11-20T01:14:47.076174+00:00",
+          "approval_reference": "User approval reply to call_1708c0842c4a4e18b93a5bfe37d13245: Approve this limited disposition"
+        },
+        "status": "accepted_for_artifact_preparation_only",
+        "proposed_expiry": "24 hours from explicit approval, and never beyond supporting evidence freshness",
+        "reassessment_triggers": [
+          "Any high/critical finding",
+          "Source changes that introduce CDK into image build contexts",
+          "New dependency audit or remediation availability",
+          "Before any application deployment"
+        ],
+        "package": "aws-cdk-lib",
+        "installed_version": "2.275.0",
+        "location": "infra/cdk/node_modules/aws-cdk-lib",
+        "finding_kind": "parent dependency exposure to the same advisory; not a second distinct vulnerability",
+        "expires_at": "2026-11-21T01:14:47.076174+00:00"
+      }
+    ]
+  },
+  "approval": {
+    "status": "approved_for_evidence_preparation_only",
+    "authority": "Flem15",
+    "approved_by": "Flem15 (project owner; explicit user approval)",
+    "approved_at": "2026-11-20T01:14:47.076174+00:00",
+    "approval_reference": "User approval reply to call_1708c0842c4a4e18b93a5bfe37d13245: Approve this limited disposition",
+    "requested_scope": "Approve this three-file input for producing publication-eligible evidence. The gate uses the label publication; neither this record nor a passing gate authorizes ECR writes. The producer dispatch itself remains separately authorized.",
+    "explicitly_excluded": [
+      "ECR upload or publication",
+      "producer dispatch",
+      "publisher workflow activation",
+      "AWS writes",
+      "ECS application deployment",
+      "trading",
+      "PR merge"
+    ],
+    "expires_at": "2026-11-21T01:14:47.076174+00:00",
+    "effective_evidence_deadline": "2026-11-20T13:31:38.811944+00:00",
+    "freshness_note": "Prior collection timestamps preserved. Existing gate freshness expires before this acceptance; refresh factual observations before using stale evidence. No timestamp was advanced to extend validity."
+  },
+  "credential_configuration": {
+    "checked_at": "2026-11-19T14:04:16.312614+00:00",
+    "repository": "Flem15/aws-llm-production-lab",
+    "environment": "dev",
+    "secret_metadata": [
+      {
+        "name": "RELEASE_POLICY_READ_TOKEN",
+        "created_at": "2026-11-19T14:03:25Z",
+        "updated_at": "2026-11-19T14:03:25Z"
+      }
+    ],
+    "secret_present": true,
+    "token_value_accessed": false,
+    "token_permissions_verified": false,
+    "workflow_dispatched": false
+  },
+  "source_binding": {
+    "reviewed_base_sha": "42fd1a2ba15ba81822ad7c47d7b26cfa507ba64e",
+    "actual_build_sha": "Set and verified by the existing producer from GITHUB_SHA after merge; not fabricated in this review",
+    "protected_main_checks_are_baseline_only": true
+  }
+}
