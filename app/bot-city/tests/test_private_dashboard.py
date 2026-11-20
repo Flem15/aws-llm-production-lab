@@ -42,3 +42,28 @@ def test_local_read_only_route(server):
 @pytest.mark.parametrize("headers", [{"Host": "attacker.test"}, {"Origin": "https://attacker.test"}, {"Origin": "null"}])
 def test_dns_rebinding_and_cross_origin_blocked(server, headers):
     assert request(server, "/analytics.html", headers=headers)[0] == 403
+
+
+@pytest.mark.parametrize("path", [
+    "/../secret.txt", "/%2e%2e/secret.txt", "/analytics.html/../secret.txt",
+    "/analytics.html%2f..%2fsecret.txt", "/%61nalytics.html",
+    "/analytics.html/", "/daily/", "/%2Fsecret.txt",
+])
+def test_unmapped_paths_never_reach_filesystem(server, path):
+    assert request(server, path)[0] == 404
+
+
+def test_query_cannot_change_literal_file_selection(server):
+    client = http.client.HTTPConnection("127.0.0.1", server.server_port, timeout=3)
+    try:
+        client.request("GET", "/analytics.html?file=../secret.txt")
+        response = client.getresponse()
+        assert response.status == 200
+        assert response.read() == b"private analytics"
+    finally:
+        client.close()
+
+
+def test_allowlisted_route_never_lists_directory(server):
+    (Path(server.RequestHandlerClass.keywords["directory"]) / "index.html").mkdir()
+    assert request(server, "/")[0] == 404

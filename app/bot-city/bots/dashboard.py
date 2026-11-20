@@ -7,7 +7,15 @@ from urllib.parse import urlsplit
 from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 
 ROOT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "dashboard")
-ALLOWED = {"/", "/index.html", "/state.json", "/analytics.html", "/analytics.js", "/analytics.css", "/analytics.json"}
+ROUTES = {
+    "/": "index.html",
+    "/index.html": "index.html",
+    "/state.json": "state.json",
+    "/analytics.html": "analytics.html",
+    "/analytics.js": "analytics.js",
+    "/analytics.css": "analytics.css",
+    "/analytics.json": "analytics.json",
+}
 
 
 class _Quiet(SimpleHTTPRequestHandler):
@@ -15,20 +23,33 @@ class _Quiet(SimpleHTTPRequestHandler):
         pass
 
     def _allowed(self):
+        self._approved_path = None
         hosts = {f"127.0.0.1:{self.server.server_port}", f"localhost:{self.server.server_port}"}
         host = self.headers.get("Host", "")
         if host not in hosts or self.headers.get("Origin", f"http://{host}") != f"http://{host}":
             self.send_error(403)
             return False
         route = urlsplit(self.path).path
-        if route not in ALLOWED:
+        filename = ROUTES.get(route)
+        if filename is None:
             self.send_error(404)
             return False
-        target = Path(self.directory) / ("index.html" if route == "/" else route[1:])
+        # Filesystem paths contain only trusted directory + literal route values.
+        target = Path(self.directory) / filename
         if target.is_symlink() or target.resolve().parent != Path(self.directory).resolve():
             self.send_error(403)
             return False
+        if not target.is_file():
+            self.send_error(404)
+            return False
+        self._approved_path = str(target)
         return True
+
+    def translate_path(self, path):
+        # Never let the parent server reinterpret request text as a file path.
+        if self._approved_path is None:
+            raise ValueError("dashboard path was not approved")
+        return self._approved_path
 
     def do_GET(self):
         if self._allowed():
