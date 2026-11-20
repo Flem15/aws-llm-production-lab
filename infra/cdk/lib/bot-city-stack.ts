@@ -10,6 +10,7 @@ import * as secrets from 'aws-cdk-lib/aws-secretsmanager';
 import * as cloudwatch from 'aws-cdk-lib/aws-cloudwatch';
 import * as actions from 'aws-cdk-lib/aws-cloudwatch-actions';
 import * as sns from 'aws-cdk-lib/aws-sns';
+import * as subscriptions from 'aws-cdk-lib/aws-sns-subscriptions';
 import * as kms from 'aws-cdk-lib/aws-kms';
 import * as events from 'aws-cdk-lib/aws-events';
 import * as targets from 'aws-cdk-lib/aws-events-targets';
@@ -30,6 +31,7 @@ export class BotCityStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: BotCityProps) {
     super(scope, id, props);
+    cdk.Tags.of(this).add('BotCityDeployment', 'BotCityDevStack');
     if (props.env?.account !== '655469962246' || props.env?.region !== 'us-east-2') {
       throw new Error('Bot City is restricted to the approved development account and region');
     }
@@ -89,10 +91,8 @@ export class BotCityStack extends cdk.Stack {
     policy(lease, ['PutItem', 'UpdateItem', 'DeleteItem', 'ConditionCheckItem'], 'alpaca-paper');
     policy(state, ['GetItem', 'PutItem'], props.paperAccountId);
     policy(history, ['GetItem', 'Query', 'PutItem'], props.paperAccountId);
-    const repository = new ecr.Repository(this, 'Repository', {
-      imageTagMutability: ecr.TagMutability.IMMUTABLE, imageScanOnPush: true,
-      removalPolicy: cdk.RemovalPolicy.RETAIN,
-    });
+    // Owned by LlmParityDevEcrStack; reference only, never duplicate or transfer ownership.
+    const repository = ecr.Repository.fromRepositoryName(this, 'Repository', 'bot-city-dev');
     const logGroup = new logs.LogGroup(this, 'Logs', {
       retention: logs.RetentionDays.ONE_MONTH, removalPolicy: cdk.RemovalPolicy.RETAIN,
     });
@@ -132,6 +132,12 @@ export class BotCityStack extends cdk.Stack {
         ArnLike: { 'aws:SourceArn': `arn:aws:cloudwatch:${this.region}:${this.account}:alarm:*` } },
     }));
     const topic = new sns.Topic(this, 'Alarms', { masterKey: alarmKey });
+    const alarmEmail = new cdk.CfnParameter(this, 'AlarmEmail', {
+      type: 'String', noEcho: true,
+      allowedPattern: '^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$',
+      description: 'Approved development incident-alert recipient; confirmation required',
+    });
+    topic.addSubscription(new subscriptions.EmailSubscription(alarmEmail.valueAsString));
     topic.addToResourcePolicy(new iam.PolicyStatement({
       principals: [new iam.ServicePrincipal('cloudwatch.amazonaws.com')],
       actions: ['sns:Publish'], resources: [topic.topicArn],
@@ -184,9 +190,7 @@ export class BotCityStack extends cdk.Stack {
       // are enforced by the proxy; the isolated task has no Internet route.
       proxySg.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443));
       endpointSg.addIngressRule(proxySg, ec2.Port.tcp(443));
-      const proxyRepo = new ecr.Repository(this, 'ProxyRepository', {
-        imageTagMutability: ecr.TagMutability.IMMUTABLE, imageScanOnPush: true, removalPolicy: cdk.RemovalPolicy.RETAIN,
-      });
+      const proxyRepo = ecr.Repository.fromRepositoryName(this, 'ProxyRepository', 'bot-city-proxy-dev');
       const proxyLogs = new logs.LogGroup(this, 'ProxyLogs', {
         retention: logs.RetentionDays.ONE_MONTH, removalPolicy: cdk.RemovalPolicy.RETAIN,
       });
@@ -298,6 +302,20 @@ export class BotCityStack extends cdk.Stack {
           Action: ['logs:CreateLogStream', 'logs:PutLogEvents'], Resource: providerLogs.logGroupArn }] },
       });
       providerFunction.node.addDependency(providerPolicy, providerLogs);
+    }
+    // The separately provisioned boundary caps every role, including custom providers.
+    for (const child of this.node.findAll()) {
+      if (child instanceof cdk.CfnResource && child.cfnResourceType === 'AWS::IAM::Role') {
+        child.addPropertyOverride('RoleName', `bot-city-dev-${this.getLogicalId(child).slice(0, 40)}`);
+        child.addPropertyOverride('PermissionsBoundary',
+          'arn:aws:iam::655469962246:policy/bot-city-dev-workload-boundary');
+        // Boundary restricts the default-SG provider to this VPC.
+        if (child instanceof iam.CfnRole) {
+          cdk.Tags.of(child).add('BotCityVpcId', vpc.vpcId);
+        } else {
+          child.addPropertyOverride('Tags', [{ Key: 'BotCityVpcId', Value: vpc.vpcId }]);
+        }
+      }
     }
     // No trading service, schedule or RunTask grant; optional proxy service stays at zero.
   }
