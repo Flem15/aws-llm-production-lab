@@ -1,0 +1,12 @@
+{
+  "account": "655469962246",
+  "region": "us-east-2",
+  "checked_at": "2026-11-19T13:31:38.811944+00:00",
+  "timestamp_basis": "Prior read-only review artifact acquisition time; no new AWS inspection this task",
+  "release_chain_removed": true,
+  "github_authorization_active": true,
+  "scope": "Previously verified reviewed release-role path only; not a global AWS privilege assertion. GitHub independently rechecked this task.",
+  "supporting_file": "review-records.json",
+  "alarm_deliveries": [],
+  "required_alarm_arns": []
+}

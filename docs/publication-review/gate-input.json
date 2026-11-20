@@ -1,0 +1,95 @@
+{
+  "schema": 1,
+  "account": "655469962246",
+  "region": "us-east-2",
+  "collected_at": "2026-11-19T13:31:38.811944+00:00",
+  "approved_actions": [],
+  "expected_source_revision": null,
+  "expected_images": {},
+  "evidence": {
+    "cloud_controls": {
+      "path": "cloud-controls.json",
+      "sha256": "53ba4a837c0d50636f73c42bea52c433bdac5560505af7d266a097f13a2e3ca0"
+    },
+    "review_records": {
+      "path": "review-records.json",
+      "sha256": "95fd49a1a346d89218a38eb9833be7266787d2f8ff4a0b35092ffe2a38ebc89f"
+    }
+  },
+  "checks": {
+    "alarm_delivery": {
+      "status": "pending",
+      "evidence": []
+    },
+    "change_approval": {
+      "status": "pending",
+      "evidence": [
+        "review_records"
+      ]
+    },
+    "drift_review": {
+      "status": "pending",
+      "evidence": []
+    },
+    "github_controls": {
+      "status": "pass",
+      "evidence": [
+        "cloud_controls",
+        "review_records"
+      ]
+    },
+    "iam_chain": {
+      "status": "pass",
+      "evidence": [
+        "cloud_controls",
+        "review_records"
+      ]
+    },
+    "image_provenance": {
+      "status": "pending",
+      "evidence": []
+    },
+    "local_validation": {
+      "status": "pending",
+      "evidence": []
+    },
+    "network_validation": {
+      "status": "pending",
+      "evidence": []
+    },
+    "npm_disposition": {
+      "status": "pending",
+      "evidence": [
+        "review_records"
+      ]
+    },
+    "recovery_controls": {
+      "status": "pending",
+      "evidence": []
+    },
+    "rollback_plan": {
+      "status": "pending",
+      "evidence": []
+    },
+    "secret_delivery": {
+      "status": "pending",
+      "evidence": []
+    },
+    "template_review": {
+      "status": "pending",
+      "evidence": []
+    }
+  },
+  "findings": [
+    {
+      "id": "PUBLICATION-APPROVAL",
+      "status": "pending",
+      "blocking": true
+    },
+    {
+      "id": "NPM-DISPOSITION",
+      "status": "pending",
+      "blocking": true
+    }
+  ]
+}
