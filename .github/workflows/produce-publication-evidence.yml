@@ -2,6 +2,12 @@ name: Produce Trusted Publication Evidence
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: Build new images or renew evidence for the reviewed existing images
+        required: true
+        default: build
+        type: choice
+        options: [build, renew-existing]
       confirmation:
         description: Type development-evidence to build and attest without publishing
         required: true
@@ -35,15 +41,23 @@ jobs:
       - name: Require reviewed publication records
         run: test -f docs/publication-review/gate-input.json
       - name: Build and scan the three exact portable images
+        if: inputs.mode != 'renew-existing'
         run: |
           set -euo pipefail
           docker buildx create --name publication --driver docker-container
           python3 .github/scripts/produce_publication_evidence.py build "${GITHUB_SHA}" bundle
+      - name: Renew evidence for the reviewed existing image bytes
+        if: inputs.mode == 'renew-existing'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/renew_publication_evidence.py prepare "${GITHUB_SHA}" bundle
       - name: Sign the image manifest digests
+        if: inputs.mode != 'renew-existing'
         uses: actions/attest-build-provenance@9d57eef8c06cd9d6b433effeeb7a6a77b3ff94ad
         with:
           subject-path: bundle/*/manifest.json
       - name: Verify provenance and produce the gated bundle
+        if: inputs.mode != 'renew-existing'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/produce_publication_evidence.py assemble "${GITHUB_SHA}" bundle
@@ -52,9 +66,15 @@ jobs:
         with:
           subject-path: bundle/gate-input.json
       - name: Independently verify the completed bundle
+        if: inputs.mode != 'renew-existing'
         env:
           GH_TOKEN: ${{ github.token }}
         run: python3 .github/scripts/produce_publication_evidence.py verify "${GITHUB_SHA}" bundle
+      - name: Verify renewed evidence and original build provenance
+        if: inputs.mode == 'renew-existing'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 .github/scripts/renew_publication_evidence.py verify "${GITHUB_SHA}" bundle
       - name: Retain approved release evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
