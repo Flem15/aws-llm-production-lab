@@ -30,6 +30,28 @@ def fresh(value,hours,now):
     if at.tzinfo is None or not -timedelta(minutes=5)<=now-at<=timedelta(hours=hours):
         raise ValueError('Stale or future-dated evidence')
 
+def validate_review_approval(root):
+    """Enforce protected review approval before building and accepting evidence."""
+    root=Path(root).resolve();data=json.loads((root/'gate-input.json').read_text())
+    now=datetime.now(timezone.utc)
+    fresh(data['collected_at'],24,now)
+    if data.get('approved_actions')!=['publication']:
+        raise ValueError('Publication-only review required')
+    ref=data['evidence']['review_records'];path=(root/ref['path']).resolve()
+    if not path.is_relative_to(root) or not path.is_file() or sha(path)!=ref['sha256']:
+        raise ValueError('Review approval path or hash mismatch')
+    record=json.loads(path.read_text());approval=record['approval']
+    if approval.get('status')!='approved_for_evidence_preparation_only' or approval.get('authority')!='Flem15':
+        raise ValueError('Explicit owner approval required')
+    issued=datetime.fromisoformat(approval['approved_at'])
+    expires=datetime.fromisoformat(approval['expires_at'])
+    if issued.tzinfo is None or expires.tzinfo is None or not issued<=now<expires or expires-issued>timedelta(hours=24):
+        raise ValueError('Review approval expired, future dated or outside 24-hour limit')
+    for disposition in record['npm']['dispositions']:
+        until=datetime.fromisoformat(disposition['expires_at'])
+        if until.tzinfo is None or now>=until:
+            raise ValueError('Risk disposition expired')
+
 def oci(archive,revision):
     """Validate content addressing from the index through every config/layer blob."""
     if not re.fullmatch('[0-9a-f]{40}',revision):raise ValueError('Exact source SHA required')
@@ -119,6 +141,7 @@ def inventory(root,revision,config,now=None):
 
 def assemble(root,review,revision,config):
     root=Path(root);review=Path(review)
+    validate_review_approval(review)
     if (root/'gate-input.json').exists():raise ValueError('Output evidence already exists')
     # Review records are protected source; no user-supplied runtime URL or untrusted artifact.
     data=json.loads((review/'gate-input.json').read_text())
@@ -147,11 +170,13 @@ def assemble(root,review,revision,config):
     data['checks']['local_validation']={'status':'pass','evidence':['required-checks.json','images']}
     result=evaluate(data,root,stage='publication',source_revision=revision)
     if result['decision']!='GO':raise ValueError(json.dumps(result))
+    validate_review_approval(review)
     (root/'gate-input.json').write_text(json.dumps(data,indent=2)+'\n')
 
 def verify_bundle(root,revision,config):
     root=Path(root)
     verify_file(root/'gate-input.json',revision)
+    validate_review_approval(root)
     data=json.loads((root/'gate-input.json').read_text())
     result=evaluate(data,root,stage='publication',source_revision=revision)
     if result['decision']!='GO':raise ValueError(json.dumps(result))
@@ -169,6 +194,7 @@ def main():
     config=json.loads(Path('.github/publication-targets.json').read_text());images=targets(config)
     if not re.fullmatch('[0-9a-f]{40}',a.revision):raise ValueError('Exact source SHA required')
     if a.action=='build':
+        validate_review_approval(a.review)
         a.output.mkdir()  # Never reuse an earlier build's files.
         for image in images:
             out=a.output/image['name'];out.mkdir()
