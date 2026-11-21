@@ -12,3 +12,7 @@ backtest_trades.csv
 .env.*
 !.env.example
 data/
+
+# Private generated trade analytics; never publish in source or images.
+dashboard/analytics.json
+dashboard/daily/

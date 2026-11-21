@@ -4,7 +4,9 @@ from __future__ import annotations
 import logging
 import math
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from copy import deepcopy
+import uuid
 from datetime import datetime, timedelta
 
 from .config import Config, WorkerConfig
@@ -22,6 +24,7 @@ class Position:
     entry_fees: float
     peak: float
     reason: str
+    journal: dict = field(default_factory=dict)
 
 
 @dataclass
@@ -39,6 +42,15 @@ class Trade:
     return_pct: float
     entry_reason: str
     exit_reason: str
+    trade_id: str = ""
+    strategy: str = ""
+    strategy_parameters: dict = field(default_factory=dict)
+    signal: dict = field(default_factory=dict)
+    market_context: dict = field(default_factory=dict)
+    risk_controls: dict = field(default_factory=dict)
+    executions: dict = field(default_factory=dict)
+    fees: float = 0.0
+    reconciliation_status: str = "unknown"
 
 
 class Worker:
@@ -55,6 +67,7 @@ class Worker:
         self.cooldown_until: datetime | None = None
         self.last_bar = None
         self.last_mark: float | None = None
+        self.market_context = {}
         self.thoughts: deque = deque(maxlen=40)
 
     @property
@@ -102,6 +115,10 @@ class Worker:
                 self.think(now, self.strategy.note)
                 self.strategy.note = None
             if signal:
+                self.market_context = {"bar_time": str(bar_ts), "underlying": self.wc.symbol}
+                for key in ("open", "high", "low", "close", "volume", "vwap", "atr", "ema9", "ema21"):
+                    if key in frame and math.isfinite(float(frame[key].iloc[-1])):
+                        self.market_context[key] = float(frame[key].iloc[-1])
                 self._enter(now, signal, float(frame["close"].iloc[-1]))
 
     def _can_enter(self, now: datetime, session=None) -> bool:
@@ -133,8 +150,17 @@ class Worker:
         if qty < 1:
             self.think(now, f"{signal.reason} · skipped, 1 contract (${mid*100:.0f}) > budget")
             return
+        decision = {"trade_id": "trade-" + uuid.uuid4().hex,
+                    "strategy": self.wc.strategy, "strategy_parameters": deepcopy(self.wc.params),
+                    "signal": {"side": signal.side, "reason": signal.reason, "time": now.isoformat()},
+                    "market_context": deepcopy(self.market_context) or {"underlying": self.wc.symbol, "close": price},
+                    "risk_controls": {"budget": budget, "requested_qty": qty,
+                        **{key: getattr(self.wc, key) for key in ("stop_loss_pct", "take_profit_pct",
+                        "trail_arm_pct", "trail_giveback_pct", "max_hold_minutes", "max_worker_loss", "max_trades")},
+                        "account_max_daily_loss": getattr(self.cfg, "max_daily_loss", None)}}
         try:
             self.broker.worker_name = self.name
+            self.broker.decision_context = deepcopy(decision)
             fill, fees = self.broker.buy(contract, qty)
         except SafetyHalt:
             raise
@@ -144,7 +170,8 @@ class Worker:
             return
         qty = getattr(self.broker, "last_filled_qty", None) or qty
         self.broker.last_filled_qty = None
-        self.position = Position(contract, qty, fill, now, fees, fill, signal.reason)
+        decision["entry_executions"] = self._executions("buy")
+        self.position = Position(contract, qty, fill, now, fees, fill, signal.reason, decision)
         self.last_mark = fill
         self.think(
             now,
@@ -213,10 +240,21 @@ class Worker:
         if reason:
             self.close(now, reason)
 
+    def _executions(self, side):
+        journal = getattr(self.broker, "journal", None)
+        if journal is None:
+            return []
+        return [deepcopy(record) for record in journal.snapshot["orders"].values()
+                if record["worker"] == self.name and record["side"] == side
+                and record["client_order_id"] in journal.snapshot["pending"]]
+
     def close(self, now, reason):
         position = self.position
         try:
             self.broker.worker_name = self.name
+            self.broker.decision_context = {**deepcopy(position.journal),
+                "exit_reason": reason, "exit_decision_time": now.isoformat(),
+                "exit_mark": self.last_mark}
             fill, fees = self.broker.sell(position.contract, position.qty)
         except SafetyHalt:
             raise
@@ -247,6 +285,17 @@ class Worker:
             round(return_pct, 4),
             position.reason,
             reason,
+            trade_id=position.journal.get("trade_id", ""),
+            strategy=position.journal.get("strategy", ""),
+            strategy_parameters=deepcopy(position.journal.get("strategy_parameters", {})),
+            signal=deepcopy(position.journal.get("signal", {})),
+            market_context=deepcopy(position.journal.get("market_context", {})),
+            risk_controls=deepcopy(position.journal.get("risk_controls", {})),
+            executions={"entry": deepcopy(position.journal.get("entry_executions", [])),
+                        "exit": self._executions("sell")},
+            fees=position.entry_fees + fees,
+            reconciliation_status=("pending_checkpoint" if getattr(self.broker, "journal", None)
+                                   else "simulated" if getattr(self.ledger, "mode", None) == "backtest" else "unknown"),
         )
         if self.ledger:
             self.ledger.record(trade)

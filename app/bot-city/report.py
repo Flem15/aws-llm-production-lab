@@ -19,13 +19,13 @@ from datetime import date, timedelta
 def stats(rows):
     pnls = [r["pnl"] for r in rows]
     wins = [p for p in pnls if p > 0]
-    losses = [p for p in pnls if p <= 0]
+    losses = [p for p in pnls if p < 0]
     by_day = defaultdict(float)
     for r in rows:
         by_day[r["day"]] += r["pnl"]
     eq = peak = mdd = 0.0
-    for d in sorted(by_day):
-        eq += by_day[d]; peak = max(peak, eq); mdd = min(mdd, eq - peak)
+    for row in sorted(rows, key=lambda r: r["exit_time"]):
+        eq += row["pnl"]; peak = max(peak, eq); mdd = min(mdd, eq - peak)
     gross_loss = -sum(losses)
     return {
         "trades": len(pnls), "win%": (len(wins) / len(pnls) if pnls else 0),
@@ -43,11 +43,13 @@ def main():
     ap.add_argument("--days", type=int, help="only the last N calendar days")
     ap.add_argument("--csv", help="export the selected trades to this CSV")
     a = ap.parse_args()
+    if a.days is not None and a.days < 1:
+        ap.error("--days must be positive")
     if a.snapshot:
         payload = json.loads(Path(a.snapshot).read_text())
         rows = payload["state"]["trades"]
         if a.days:
-            cutoff = str(date.today() - timedelta(days=a.days))
+            cutoff = str(date.today() - timedelta(days=a.days - 1))
             rows = [row for row in rows if row["day"] >= cutoff]
         rows = sorted(rows, key=lambda row: row["exit_time"])
     else:
@@ -55,7 +57,7 @@ def main():
             con.row_factory = sqlite3.Row
             q, args = "SELECT * FROM trades", ()
             if a.days:
-                q, args = q + " WHERE day >= ?", (str(date.today() - timedelta(days=a.days)),)
+                q, args = q + " WHERE day >= ?", (str(date.today() - timedelta(days=a.days - 1)),)
             rows = [dict(r) for r in con.execute(q + " ORDER BY exit_time", args)]
     if not rows:
         raise SystemExit("No closed trades yet. Let the bots run through a market day first.")
@@ -79,7 +81,7 @@ def main():
     for name in sorted(groups):
         c = Counter(r["exit_reason"] for r in groups[name])
         print(f"  {name:<12}" + " · ".join(f"{k} {v}" for k, v in c.most_common()))
-    print("\n  Profit factor = gross wins ÷ gross losses. Above 1.3 over 100+ trades is the bar worth aiming for.\n")
+    print("\n  Profit factor = gross wins ÷ gross losses. Closed-trade drawdown excludes intratrade losses. No-loss profit factor is undefined; sample size matters.\n")
     if a.csv:
         import csv
         with open(a.csv, "w", newline="") as f:

@@ -1,0 +1,10 @@
+# Minimum remaining requirements for supervised paper trading
+
+1. Review and promote this journal/dashboard change through normal CI; generate fresh signed image and scan evidence; separately authorize any publication and replacement task revision. The currently deployed image does not contain this local work.
+2. Complete the separately authorized synthetic AWS crash-fault validation. Record expected safety halts as such, not automatic recovery. Prove no duplicate submission and preserve uncertain intents. Resolve any failure through explicit reconciliation, never record clearing.
+3. Revalidate the designated paper account PA3SQN959 / d8513544-ac5a-4731-8484-d4b087a9d259 with read-only broker checks against existing durable state. Initialization is already complete: do not initialize again or require erasing legitimate history. Verify account option permissions, current positions/orders/fills and ownership.
+4. Review the actual trading-enabled task configuration, application safeguards, proxy methods/destinations and IAM scope. The prior trading-disabled runtime success does not prove order endpoints or cancellations are usable. No loosening of the proxy or changing runtime flags is implicitly authorized here.
+5. Obtain a single attended paper-session approval specifying exact symbols/strategies, max order count, position and loss limits, duration, entry cutoff, permitted order/cancel/close operations, operator halt procedure and cleanup. Agree how an open position or uncertain fill is handled before starting; returning ECS to zero alone is not safe liquidation.
+6. Verify current MFA/authorization, exact signed image digests and evidence freshness, operational alarms, source revision and ledger export/report availability. Keep live credentials and live endpoints unavailable. Confirm the dashboard reflects the same durable revision, with no unknown reconciliation state omitted.
+
+Current decision: local analytics implementation can be reviewed. Paper orders, AWS crash execution, task startup and unattended operation remain NO-GO without their separate approvals. No profitability claim follows from synthetic tests or a working dashboard.

@@ -1,0 +1,13 @@
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+*.py[cod]
+state/
+dashboard/state.json
+backtest_trades.csv
+.DS_Store
+
+# Private generated trade analytics; never publish in source or images.
+dashboard/analytics.json
+dashboard/daily/

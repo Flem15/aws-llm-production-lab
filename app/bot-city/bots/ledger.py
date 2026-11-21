@@ -8,6 +8,7 @@ from dataclasses import asdict
 from datetime import datetime, date, timezone
 
 from .options import Contract
+from .analytics import build_report, canonical, trade_id, unique_trades, JournalConflict
 
 COLS = [
     "worker", "day", "contract", "side", "qty", "entry_time", "entry_price", "exit_time",
@@ -51,7 +52,20 @@ class Ledger:
         self.db = sqlite3.connect(db_path) if db_path else None
         if self.db:
             self.db.execute(f"CREATE TABLE IF NOT EXISTS trades ({', '.join(COLS)})")
-            self.db.commit()
+            migrate = not self.db.execute("SELECT 1 FROM sqlite_master WHERE name='trade_journal' AND type='table'").fetchone()
+            # Explicit transaction includes schema + all rows; failed migration is retryable.
+            self.db.execute("BEGIN IMMEDIATE")
+            try:
+                legacy = [dict(zip(COLS, row)) for row in self.db.execute("SELECT * FROM trades").fetchall()] if migrate else []
+                records = unique_trades(legacy)
+                self.db.execute("CREATE TABLE IF NOT EXISTS trade_journal (trade_id TEXT PRIMARY KEY, payload TEXT NOT NULL)")
+                for d in records:
+                    self.db.execute("INSERT INTO trade_journal VALUES (?,?)", (d["trade_id"], canonical(d)))
+                self.db.commit()
+            except BaseException:
+                self.db.rollback()
+                self.db.close()
+                raise
         self.trades: list = []
         self.workers: list = []
 
@@ -64,20 +78,39 @@ class Ledger:
             self.db = None
 
     def record(self, trade):
-        self.trades.append(trade)
+        d = asdict(trade)
+        d["trade_id"] = trade_id(d)
         if self.db:
-            d = asdict(trade)
-            self.db.execute(
-                f"INSERT INTO trades VALUES ({','.join('?' * len(COLS))})",
-                [d[c] for c in COLS],
-            )
-            self.db.commit()
+            with self.db:
+                found = self.db.execute("SELECT payload FROM trade_journal WHERE trade_id=?", (d["trade_id"],)).fetchone()
+                if found:
+                    if canonical(json.loads(found[0])) != canonical(d):
+                        raise JournalConflict("trade ID reused with different contents")
+                    return
+                self.db.execute("INSERT INTO trade_journal VALUES (?,?)", (d["trade_id"], canonical(d)))
+                self.db.execute(f"INSERT INTO trades VALUES ({','.join('?' * len(COLS))})", [d[c] for c in COLS])
+        self.trades.append(trade)
+
+    def history(self):
+        if self.db:
+            return [json.loads(row[0]) for row in self.db.execute("SELECT payload FROM trade_journal")]
+        return [asdict(t) for t in self.trades]
+
+    def write_analytics(self, today=None):
+        if not self.state_path:
+            return
+        report = build_report(self.history(), source={"kind": "durable-ledger" if hasattr(self, "durable") else "local-ledger",
+            "revision": getattr(getattr(self, "durable", None), "revision", None), "mode": self.mode})
+        directory = os.path.dirname(self.state_path)
+        _atomic_json(os.path.join(directory, "analytics.json"), report)
+        for day in sorted(set(report["daily"]) | ({today} if today else set())):
+            daily = build_report([t for t in report["trades"] if t["day"] == day], source=report["source"], as_of=report["generated_at"])
+            _atomic_json(os.path.join(directory, "daily", day + ".json"), daily)
 
     def todays_trades(self, day: date):
         if not self.db:
             return []
-        cur = self.db.execute("SELECT worker, pnl FROM trades WHERE day = ?", (str(day),))
-        return cur.fetchall()
+        return [(t["worker"], t["pnl"]) for t in self.history() if t["day"] == str(day)]
 
     def save_positions(self):
         if not self.positions_path:
@@ -94,6 +127,7 @@ class Ledger:
                     "entry_fees": p.entry_fees,
                     "peak": p.peak,
                     "reason": p.reason,
+                    "journal": p.journal,
                 }
         _atomic_json(self.positions_path, out)
 
@@ -171,6 +205,7 @@ class Ledger:
         if extra:
             state.update(extra)
         _atomic_json(self.state_path, state)
+        self.write_analytics(today)
 
 
 class DurableLedger(Ledger):
@@ -183,6 +218,9 @@ class DurableLedger(Ledger):
     def record(self, trade):
         self.pending_trades.append(asdict(trade))
         self.trades.append(trade)
+
+    def history(self):
+        return self.durable.snapshot["trades"]
 
     def todays_trades(self, day):
         return [(trade["worker"], trade["pnl"]) for trade in self.durable.snapshot["trades"]
@@ -220,7 +258,7 @@ class DurableLedger(Ledger):
                     "contract": asdict(position.contract) | {"expiry": str(position.contract.expiry)},
                     "qty": position.qty, "entry_price": position.entry_price,
                     "entry_time": position.entry_time.isoformat(), "entry_fees": position.entry_fees,
-                    "peak": position.peak, "reason": position.reason,
+                    "peak": position.peak, "reason": position.reason, "journal": deepcopy(position.journal),
                 }
             risk[worker.name] = {
                 "day": str(worker.day) if worker.day else None,
