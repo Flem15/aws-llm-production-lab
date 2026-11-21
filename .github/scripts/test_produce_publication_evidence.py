@@ -23,6 +23,9 @@ class ProducerTests(unittest.TestCase):
   cloud={'account':'655469962246','region':'us-east-2','checked_at':self.now,'release_chain_removed':True,'github_authorization_active':True}
   (self.review/'cloud.json').write_text(json.dumps(cloud))
   review={'schema':1,'account':'655469962246','region':'us-east-2','collected_at':self.now,'approved_actions':['publication'],'evidence':{'cloud_controls':{'path':'cloud.json','sha256':p.sha(self.review/'cloud.json')}},'checks':{k:{'status':'pass','evidence':['cloud_controls']} for k in REQUIRED},'findings':[]}
+  record={'approval':{'status':'approved_for_evidence_preparation_only','authority':'Flem15','approved_at':self.now,'expires_at':(datetime.now(timezone.utc)+timedelta(hours=23)).isoformat()},'npm':{'dispositions':[]}}
+  (self.review/'records.json').write_text(json.dumps(record))
+  review['evidence']['review_records']={'path':'records.json','sha256':p.sha(self.review/'records.json')}
   (self.review/'gate-input.json').write_text(json.dumps(review))
   names=['Application and Docker','CDK Build and Synthesis','Restricted Egress Security and Docker','Bot City Safety and Docker','Release Image Security']
   self.checks={'total_count':5,'check_runs':[{'name':n,'head_sha':self.revision,'status':'completed','conclusion':'success','app':{'id':15368}} for n in names]}
@@ -86,5 +89,34 @@ class ProducerTests(unittest.TestCase):
  def test_missing_image_blocks_generation(self):
   (self.bundle/'proxy/image.tar').unlink()
   with self.assertRaises(FileNotFoundError):self.assemble()
+
+ def change_record(self,change):
+  f=self.review/'records.json';record=json.loads(f.read_text());change(record);f.write_text(json.dumps(record))
+  g=self.review/'gate-input.json';data=json.loads(g.read_text());data['evidence']['review_records']['sha256']=p.sha(f);g.write_text(json.dumps(data))
+ def test_expired_owner_approval_rejected(self):
+  self.change_record(lambda r:r['approval'].update(expires_at=(datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat()))
+  with self.assertRaisesRegex(ValueError,'expired'):self.assemble()
+ def test_pending_or_wrong_authority_rejected(self):
+  for change in [{'status':'pending_owner_approval'},{'status':'approved_for_evidence_preparation_only','authority':'other'}]:
+   self.change_record(lambda r:r['approval'].update(change))
+   with self.assertRaisesRegex(ValueError,'owner approval'):self.assemble()
+ def test_expired_disposition_rejected(self):
+  self.change_record(lambda r:r['npm'].update(dispositions=[{'expires_at':(datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat()}]))
+  with self.assertRaisesRegex(ValueError,'disposition expired'):self.assemble()
+ def test_approval_hash_tamper_rejected(self):
+  (self.review/'records.json').write_text('{}')
+  with self.assertRaisesRegex(ValueError,'hash mismatch'):self.assemble()
+ def test_expiry_after_assembly_rejected(self):
+  self.assemble()
+  class Later(datetime):
+   @classmethod
+   def now(cls,tz=None):return datetime.now(timezone.utc)+timedelta(hours=23,minutes=1)
+  with patch.object(p,'datetime',Later),patch.object(p,'verify_file',return_value='[{}]'),self.assertRaisesRegex(ValueError,'expired'):
+   p.verify_bundle(self.bundle,self.revision,self.config)
+ def test_build_rejects_pending_before_any_subprocess(self):
+  self.change_record(lambda r:r['approval'].update(status='pending_owner_approval'))
+  with patch('sys.argv',['producer','build',self.revision,str(self.root/'new-output'),'--review',str(self.review)]),patch.object(p.subprocess,'run') as run,self.assertRaisesRegex(ValueError,'owner approval'):
+   p.main()
+  run.assert_not_called();self.assertFalse((self.root/'new-output').exists())
 
 if __name__=='__main__':unittest.main()
